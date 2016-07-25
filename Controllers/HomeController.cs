@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace VidsNet.Controllers
 {
@@ -18,6 +19,9 @@ namespace VidsNet.Controllers
             if(id.HasValue) {
                 _logger.LogInformation("Id: " + id);
             }
+
+
+            
             return View();
         }
 
@@ -55,6 +59,21 @@ namespace VidsNet.Controllers
                     _logger.LogError(string.Format("User with id {0} not found.", id));
                 }
             }
+        }
+
+        [Route("scan")]
+        //TEST METHOD
+        public IActionResult Scan() {
+            var dict = new Dictionary<int, string>() { { 1, "/home/gedas/workspace/vidsnet/" }};
+            var scanner = new VideoScanner(_logger, 1);
+            var items = scanner.ScanItems(dict);
+            var result = string.Empty;
+            foreach(var item in items) {
+                result += item.Id + ": " + item.Path + "\r\n";
+            }
+            return Content(result);
+
+
         }
 
         private void SetSession(string name, int id, int level) {

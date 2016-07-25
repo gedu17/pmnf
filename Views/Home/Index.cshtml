@@ -1,11 +1,41 @@
 <!html5>
 <html>
-<head id="Head1" runat="server">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/public/stylesheets/style.css">
+    <link rel="stylesheet" href="/public/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/public/stylesheets/bootstrap-theme.min.css">
+    
+    <script src="/public/javascripts/jquery-2.2.4.min.js"></script>
+    <script src="/public/javascripts/bootstrap.min.js"></script>
+    <script src="/public/javascripts/scripts.js"></script>
     <title>Index</title>
 </head>
 <body>
+    <div class="modal fade" id="popup" tabindex="-1" role="dialog" aria-labelledby="popup" aria-hidden="true" >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"> &times;</span>
+                    </button>
+                    <h4 class="modal-title" id="popupTitle">Empty Modal</h4>
+                </div>
+                <div class="modal-body" id="popupBody">
+                    <p>Enter text here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="button" data-dismiss="modal" id="popupSave">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div>
-    
         
     The current date and time is @DateTime.Now.ToString()
 

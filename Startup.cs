@@ -1,9 +1,10 @@
-using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -18,11 +19,17 @@ namespace VidsNet
             //services.AddEntityFrameworkSqlite();
             services.AddSession();
             services.AddDistributedMemoryCache();
+            //services.AddTransient<VideoScanner, VideoScanner>();
+
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {  
-            app.UseSession();         
+            app.UseSession();    
+            app.UseStaticFiles(new StaticFileOptions() {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"public")),
+                RequestPath = new PathString("/public")
+            });     
             loggerFactory.AddConsole(LogLevel.Information);
             app.UseMvcWithDefaultRoute();
 

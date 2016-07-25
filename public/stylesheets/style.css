@@ -1,0 +1,27 @@
+html {
+  height: 100%;
+}
+body {
+  padding: 50px;
+  font: 18px "Lucida Grande", Helvetica, Arial, sans-serif;
+  height: 100%;
+}
+a {
+  color: #00b7ff;
+}
+.avatar {
+  width: 64px;
+  height: 64px !important;
+}
+.login-box {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.label-margin {
+  margin-left: 10px;
+}
+.content-box {
+  margin-top: 50px;
+}
