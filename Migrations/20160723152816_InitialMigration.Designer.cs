@@ -7,7 +7,7 @@ using VidsNet;
 
 namespace vidsnet.Migrations
 {
-    [DbContext(typeof(DatabseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20160723152816_InitialMigration")]
     partial class InitialMigration
     {

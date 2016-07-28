@@ -19,6 +19,16 @@ namespace VidsNet
             //services.AddEntityFrameworkSqlite();
             services.AddSession();
             services.AddDistributedMemoryCache();
+            //TODO: configure
+            services.AddAntiforgery();
+            //TODO: configure
+            services.AddAuthorization();
+            //TODO: configure
+            services.AddCors();
+            //TODO: configure
+            services.AddDataProtection();
+            
+            services.AddDbContext<DatabaseContext>();
             //services.AddTransient<VideoScanner, VideoScanner>();
 
         }

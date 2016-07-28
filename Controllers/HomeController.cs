@@ -21,7 +21,7 @@ namespace VidsNet.Controllers
             }
 
 
-            
+
             return View();
         }
 
@@ -49,7 +49,7 @@ namespace VidsNet.Controllers
         [Route("login")]
         [HttpPost]
         public void Login(int id){
-            using(var db = new DatabseContext()) {
+            using(var db = new DatabaseContext()) {
                 if(db.Users.Any(x => x.Id == id)) {
                     var user = db.Users.Where(x => x.Id == id).ToList();
                     SetSession(user[0].Name, user[0].Id, user[0].Level);
@@ -66,14 +66,13 @@ namespace VidsNet.Controllers
         public IActionResult Scan() {
             var dict = new Dictionary<int, string>() { { 1, "/home/gedas/workspace/vidsnet/" }};
             var scanner = new VideoScanner(_logger, 1);
-            var items = scanner.ScanItems(dict);
-            var result = string.Empty;
-            foreach(var item in items) {
-                result += item.Id + ": " + item.Path + "\r\n";
-            }
+            scanner.ScanItems(dict);
+            var result = "Video scan done.\r\n";
+
+            var scanner2 = new SubtitleScanner(_logger, 1);
+            scanner2.ScanItems(dict);
+
             return Content(result);
-
-
         }
 
         private void SetSession(string name, int id, int level) {

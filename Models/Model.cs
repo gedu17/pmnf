@@ -3,7 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace VidsNet {
-    public class DatabseContext : DbContext {
+    public class DatabaseContext : DbContext {
         public DbSet<Setting> Settings { get; set; }
         public DbSet<User> Users {get;set;}
         public DbSet<RealItem> RealItems {get;set;}

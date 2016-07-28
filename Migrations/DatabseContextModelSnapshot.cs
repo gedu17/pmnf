@@ -7,7 +7,7 @@ using VidsNet;
 
 namespace vidsnet.Migrations
 {
-    [DbContext(typeof(DatabseContext))]
+    [DbContext(typeof(DatabaseContext))]
     partial class DatabseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

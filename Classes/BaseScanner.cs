@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace VidsNet
@@ -23,44 +25,93 @@ namespace VidsNet
             var di = new DirectoryInfo(userPath);
 
             var dirs = di.GetDirectories();
-            foreach(var dir in dirs) {
-                var dirId = AddRealItem(realParentId, userPathId, dir.FullName, ItemType.Folder);
-                var virtDirId = AddVirtualItem(_userId, dirId, virtualParentId, dir.Name, ItemType.Folder);
+            Parallel.ForEach(dirs, dir => {
+                var dirId = AddRealItem(realParentId, userPathId, dir.FullName, ItemType.Folder).Result;
+                var virtDirId = AddVirtualItem(_userId, dirId, virtualParentId, dir.Name, ItemType.Folder).Result;
                 var item = new Item() { Id = dirId, Path = dir.FullName, Type = ItemType.Folder };
                 _items.Add(item);
                 
                 Scan(dir.FullName, userPathId, dirId, virtDirId);
-            }
-
+            });
+            
             var files = di.GetFiles();
-            foreach(var file in files) {
-                if(IsCorrectType(file.Name)) {
-                    var itemId = AddRealItem(realParentId, userPathId, file.FullName, ItemType.Video);
-                    var virtItemId = AddVirtualItem(_userId, itemId, virtualParentId, file.Name, ItemType.Video);
-                    var item = new Item() { Id = itemId, Path = file.FullName, Type = ItemType.Video };
+            Parallel.ForEach(files, file => {
+                _logger.LogDebug("Found item " + file.Name);
+                var check = CheckType(file.Name);
+                if(check.CorrectType) {
+                    var itemId = AddRealItem(realParentId, userPathId, file.FullName, check.Type).Result;
+
+                    if(check.WriteVirtualItem) {
+                        var virtItemId = AddVirtualItem(_userId, itemId, virtualParentId, file.Name, check.Type);
+                    }
+                    var item = new Item() { Id = itemId, Path = file.FullName, Type = check.Type };
 
                     _items.Add(item);
                 }
+            });
+        }
+
+        protected abstract CheckTypeResult CheckType(string filePath);
+
+        protected async Task<int> AddRealItem(int parentId, int userPathId, string path, ItemType type)
+        {
+            using(var db = new DatabaseContext()) {
+                if(!db.RealItems.Any(x => x.Path == path)) {
+                    string name = Path.GetFileName(path);
+                    var realItem = new RealItem()
+                    {
+                        ParentId = parentId,
+                        Type = type,
+                        UserPathId = userPathId,
+                        Name = name,
+                        Path = path,
+                        Extension = Path.GetExtension(path)
+                    };
+                    db.RealItems.Add(realItem);
+                    //TODO: check if it doesnt make it worse
+                    await db.SaveChangesAsync();
+                    return realItem.Id;
+                }
+                else {
+                    var results = db.RealItems.Where(x => x.Path == path).ToList();
+                    return results[0].Id;
+                }
+                
             }
         }
 
-        protected abstract bool IsCorrectType(string filePath);
+        protected async Task<int> AddVirtualItem(int userId, int realItemId, int parentId, string name, ItemType type)
+        {
+            using(var db = new DatabaseContext()) {
+                if(!db.VirtualItems.Any(x => x.UserId == userId && x.RealItemId == realItemId)) {
+                    var virtualItem = new VirtualItem()
+                    {
+                        UserId = userId,
+                        RealItemId = realItemId,
+                        ParentId = parentId,
+                        Type = type,
+                        Name = name,
+                        IsSeen = false,
+                        IsDeleted = false
+                    };
+                    db.VirtualItems.Add(virtualItem);
+                    await db.SaveChangesAsync();
+                    return virtualItem.Id;
+                }
+                else {
+                    var results = db.VirtualItems.Where(x => x.UserId == userId && x.RealItemId == realItemId).ToList();
+                    return results[0].Id;
+                }
+                
+            }
+        }   
 
-        protected abstract int AddRealItem(int parentId, int userPathId, string path, ItemType type);
-        protected abstract int AddVirtualItem(int userId, int realItemId, int parentId, string name, ItemType type);    
-
-        public List<Item> ScanItems(Dictionary<int, string> userPaths) {
+        public void ScanItems(Dictionary<int, string> userPaths) {
             if(userPaths.Count == 0) {
-                throw new ArgumentException("userPaths cannot be null");
+                throw new ArgumentException("userPaths cannot be empty");
             }
 
-            foreach(var userPath in userPaths) {
-                Scan(userPath.Value, userPath.Key);
-            }
-            
-            return _items;
+            Parallel.ForEach(userPaths, userPath => Scan(userPath.Value, userPath.Key));           
         }
-
     }
-
 }

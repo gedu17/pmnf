@@ -1,6 +1,21 @@
 #VidsNET
 
-##0.1.1
+##1.2.0
+###Back-End
+- [x] Add Dependency injection support for DatabaseContext
+- [x] Fix mistype "DatabseContext" to "DatabaseContext"
+- [x] Implement methods in ItemController (except view)
+- [x] Finalize BaseScanner class
+- [x] Implement VideoScanner class
+- [x] Implement SubtitleScanner class
+- [x] Implement VideoType enum
+- [x] Implement SubtitleType enum
+- [x] Add FrontEndItem class to bind data from front-end
+
+###Misc
+- [x] Change versioning from 0.x.y to x.y.z
+
+##1.1.0
 ###Back-End
 - [x] Add BaseScanner class
 - [x] Add VideoScanner class
@@ -12,7 +27,7 @@
 - [x] Add jQuery
 
 
-##0.1.0
+##1.0.0
 ###Back-End
 - [x] Add EntityFramework support
 - [x] Add Session support
