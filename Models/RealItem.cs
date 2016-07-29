@@ -1,5 +1,7 @@
 
-namespace VidsNet
+using VidsNet.Enums;
+
+namespace VidsNet.Models
 {
     public class RealItem {
         public int Id {get;set;}

@@ -11,7 +11,6 @@ namespace VidsNet
             string[] urls = {"http://194.135.88.108:8080/", "http://localhost:8080/"};
             var host = new WebHostBuilder().UseKestrel().UseUrls(urls)
             .UseContentRoot(Directory.GetCurrentDirectory()).UseStartup<Startup>().Build();
-            Console.WriteLine("current dir = " + Directory.GetCurrentDirectory());
             host.Run();
         }
     }

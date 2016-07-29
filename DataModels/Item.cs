@@ -1,6 +1,8 @@
 
 
-namespace VidsNet
+using VidsNet.Enums;
+
+namespace VidsNet.DataModels
 {
     public class Item {
 

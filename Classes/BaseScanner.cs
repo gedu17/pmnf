@@ -5,8 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using VidsNet.DataModels;
+using VidsNet.Enums;
+using VidsNet.Models;
 
-namespace VidsNet
+namespace VidsNet.Classes
 {
     public abstract class BaseScanner {
         protected ILogger _logger;

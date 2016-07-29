@@ -1,7 +1,7 @@
 
 using System.Collections.Generic;
 
-namespace VidsNet
+namespace VidsNet.Enums
 {
     public class SubtitleType {
         private List<string> _types {get;set;}

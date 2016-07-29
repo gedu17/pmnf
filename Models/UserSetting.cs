@@ -1,5 +1,5 @@
 
-namespace VidsNet
+namespace VidsNet.Models
 {
     public class UserSetting {
         public int Id {get;set;}

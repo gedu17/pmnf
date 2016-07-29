@@ -1,7 +1,9 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
+using VidsNet.Enums;
+using VidsNet.DataModels;
 
-namespace VidsNet
+namespace VidsNet.Classes
 {
     public class SubtitleScanner : BaseScanner
     {

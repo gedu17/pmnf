@@ -1,7 +1,8 @@
 
 using System;
+using VidsNet.Enums;
 
-namespace VidsNet
+namespace VidsNet.Models
 {
     public class VirtualItem {
         public int Id {get;set;}

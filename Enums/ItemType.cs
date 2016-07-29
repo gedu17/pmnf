@@ -1,5 +1,5 @@
 
-namespace VidsNet
+namespace VidsNet.Enums
 {
     public enum ItemType {
         None = -1,

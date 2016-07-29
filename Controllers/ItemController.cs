@@ -7,9 +7,14 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using VidsNet.DataModels;
+using VidsNet.Models;
+using VidsNet.Enums;
 
 namespace VidsNet.Controllers
 {
+    [Authorize]
     public class ItemController : Controller
     {
         private ILogger _logger;
@@ -88,7 +93,7 @@ namespace VidsNet.Controllers
 
             return NotFound();
         }
-
+        [AllowAnonymous]
         [HttpGet]
         //TODO: IMEPLEMENT VIDEO AND SUBTITLE SERVING
         public async Task<IActionResult> view(int id, string name) {

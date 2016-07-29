@@ -1,9 +1,7 @@
-
 namespace VidsNet.DataModels
 {
-    public class FrontEndItem {
+    public class MenuItem {
         public string Name {get;set;}
-        public int Parent {get;set;}
+        public string Url {get;set;}
     }
-
 }

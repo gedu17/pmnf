@@ -1,4 +1,5 @@
 using System.Linq;
+using VidsNet.Models;
 namespace VidsNet
 {
     public static class Setup {

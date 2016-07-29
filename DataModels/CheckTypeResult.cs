@@ -1,5 +1,7 @@
 
-namespace VidsNet
+using VidsNet.Enums;
+
+namespace VidsNet.DataModels
 {
     public class CheckTypeResult {
         public bool CorrectType {get;set;}

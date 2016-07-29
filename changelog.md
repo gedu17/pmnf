@@ -1,5 +1,18 @@
 #VidsNET
 
+##1.3.0
+###Back-End
+- [x] Add Authentication with password
+- [x] Add MenuItems and MenuItem class
+- [x] Add BaseViewModel class
+- [x] Add HomeViewModel, LoginViewModel classes
+- [x] Add appropriate namespaces
+
+###Front-End
+- [x] Create page layout
+- [x] Add authentication with password
+- [x] Fix menu bar to reflect on current page
+
 ##1.2.0
 ###Back-End
 - [x] Add Dependency injection support for DatabaseContext

@@ -1,5 +1,5 @@
 
-namespace VidsNet
+namespace VidsNet.Models
 {
     public class SystemMessage {
         public int Id {get;set;}

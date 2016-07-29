@@ -1,12 +1,18 @@
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using VidsNet.Classes;
+using VidsNet.Interfaces;
+using VidsNet.Models;
 
 namespace VidsNet
 {
@@ -15,21 +21,35 @@ namespace VidsNet
         public void ConfigureServices(IServiceCollection services){
             services.AddRouting();
             services.AddLogging();
-            services.AddMvc();
-            //services.AddEntityFrameworkSqlite();
+            
+
+            services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContext>();
             services.AddSession();
             services.AddDistributedMemoryCache();
-            //TODO: configure
-            services.AddAntiforgery();
-            //TODO: configure
-            services.AddAuthorization();
-            //TODO: configure
-            services.AddCors();
-            //TODO: configure
-            services.AddDataProtection();
+
+            services.AddAuthorization(options => {
+                options.AddPolicy("Default", policy => {
+                    policy.AddAuthenticationSchemes("Automatic");
+                    policy.RequireAuthenticatedUser();
+                });
+                options.AddPolicy("Administrator", policy =>  {
+                    policy.AddAuthenticationSchemes("Automatic");
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireRole("Administrator");
+                });
+            });
+
+            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+
+            
+            //TODO: configure if needed
+            //services.AddCors();
+            //TODO: configure if needed
+            //services.AddDataProtection();
             
             services.AddDbContext<DatabaseContext>();
-            //services.AddTransient<VideoScanner, VideoScanner>();
+            services.AddMvc();
+            services.AddScoped<IUserRepository, UserRepository>();
 
         }
 
@@ -40,9 +60,21 @@ namespace VidsNet
                 FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"public")),
                 RequestPath = new PathString("/public")
             });     
+            
             loggerFactory.AddConsole(LogLevel.Information);
+
+            app.UseCookieAuthentication(new CookieAuthenticationOptions() {
+                AuthenticationScheme = "Cookie",
+                LoginPath = new PathString("/Account/Login/"),
+                AccessDeniedPath = new PathString("/Account/Forbidden/"),
+                CookieName = "VidsNETCookie",
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true
+            });
+
             app.UseMvcWithDefaultRoute();
 
+            
             /*app.Run(context =>
             {
                 if(Setup.SettingsExist() && Setup.UsersExist()) {

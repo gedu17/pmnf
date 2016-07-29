@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
-
-namespace VidsNet {
+using VidsNet.Models;
+namespace VidsNet.Models
+{
     public class DatabaseContext : DbContext {
         public DbSet<Setting> Settings { get; set; }
         public DbSet<User> Users {get;set;}
