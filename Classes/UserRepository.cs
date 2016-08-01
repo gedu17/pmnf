@@ -4,6 +4,8 @@ using System.Security.Claims;
 using VidsNet.Interfaces;
 using System.Linq;
 using VidsNet.Models;
+using VidsNet.Enums;
+using System.Threading.Tasks;
 
 namespace VidsNet.Classes
 {
@@ -27,6 +29,13 @@ namespace VidsNet.Classes
             }
         }
 
+        async Task IUserRepository.ChangePassword(int userId, string password) {
+            var user = _db.Users.Where(x => x.Id == userId).First();
+            user.Password = password;
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+        }
+
         ClaimsPrincipal IUserRepository.Get(string userName)
         {
             var user = _users.FirstOrDefault(x => x.Name == userName);
@@ -36,11 +45,9 @@ namespace VidsNet.Classes
             }
 
             List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("Default", userName, ClaimValueTypes.String, "localhost"));
-
-            if(user.Level == 9) {
-                claims.Add(new Claim("Administrator", userName, ClaimValueTypes.String, "localhost"));
-            }
+            claims.Add(new Claim(Claims.Id.ToString(), user.Id.ToString(), ClaimValueTypes.String, Constants.Issuer));
+            claims.Add(new Claim(Claims.Level.ToString(), user.Level.ToString(), ClaimValueTypes.String, Constants.Issuer));
+            claims.Add(new Claim(Claims.Name.ToString(), user.Name.ToString(), ClaimValueTypes.String, Constants.Issuer));
 
             var userIdentity = new ClaimsIdentity("VidsNet");
             userIdentity.AddClaims(claims);

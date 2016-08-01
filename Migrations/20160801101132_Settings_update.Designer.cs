@@ -8,9 +8,10 @@ using VidsNet.Models;
 namespace vidsnet.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabseContextModelSnapshot : ModelSnapshot
+    [Migration("20160801101132_Settings_update")]
+    partial class Settings_update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");

@@ -7,37 +7,41 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using VidsNet.Classes;
 using VidsNet.Models;
+using System.Threading.Tasks;
 
 namespace VidsNet.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private ILogger _logger;
-        public HomeController(ILoggerFactory logger) {
+        private Scanner _scanner;
+        private IHttpContextAccessor _accessor;
+        private DatabaseContext _db;
+        public HomeController(ILoggerFactory logger, Scanner scanner, IHttpContextAccessor accessor, DatabaseContext db)
+         : base(accessor, db) {
             _logger = logger.CreateLogger("HomeController");
+            _scanner = scanner;
+            _accessor = accessor;
+            _db = db;
         }
 
         
         public IActionResult Index()
         {
-            var model = new HomeViewModel();
+            var data =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ToList();
+            var data2 = _db.RealItems.ToList();
+            var model = new HomeViewModel(_accessor) {Data = data, Data2 = data2 };
 
             return View(model);
         }
 
         [Route("scan")]
         //TEST METHOD
-        public IActionResult Scan() {
-            var dict = new Dictionary<int, string>() { { 1, "/home/gedas/workspace/vidsnet/" }};
-            var scanner = new VideoScanner(_logger, 1);
-            scanner.ScanItems(dict);
-            var result = "Video scan done.\r\n";
-
-            var scanner2 = new SubtitleScanner(_logger, 1);
-            scanner2.ScanItems(dict);
-
-            return Content(result);
+        public async Task<IActionResult> Scan() {
+            var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").ToList());            
+            var model = new ScanViewModel(_accessor) {Data = set};
+            return View(model);
         }
     }
 }

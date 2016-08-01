@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,20 +8,24 @@ using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using VidsNet.DataModels;
 using VidsNet.Interfaces;
 using VidsNet.Models;
 
 namespace VidsNet.Controllers
 {
     [Authorize]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private IUserRepository _userRepository;
         private readonly ILogger _logger;
-        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory)
+        private IHttpContextAccessor _accessor;
+        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory,IHttpContextAccessor accessor, DatabaseContext db)
+         : base(accessor, db)
         {
             _userRepository = userRepository;
             _logger = loggerFactory.CreateLogger("AccountController");
+            _accessor = accessor;
         }
 
         /*[HttpPost]
@@ -61,7 +66,7 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
-            return View(new LoginViewModel());
+            return View(new LoginViewModel(_accessor));
         }
 
 
@@ -73,7 +78,7 @@ namespace VidsNet.Controllers
             if (ModelState.IsValid)
             {
                 if(!_userRepository.ValidateLogin(model.Username, model.Password)) {
-                    return View(new LoginViewModel() { ErrorMessage = "Bad login info."});
+                    return View(new LoginViewModel(_accessor) { ErrorMessage = "Bad login info."});
                 }
 
                 await HttpContext.Authentication.SignInAsync("Cookie", _userRepository.Get(model.Username),
@@ -82,17 +87,57 @@ namespace VidsNet.Controllers
                     IsPersistent = true,
                     AllowRefresh = true
                 });
-                
-                HttpContext.Session.SetString("Name", model.Username);
-                //HttpContext.Session.SetInt32("Id", _userRepository.GetId(model.Username));
-                //HttpContext.Session.SetInt32("Level", level);
 
                 if(string.IsNullOrWhiteSpace(returnUrl)) {
                     return Redirect("/");
                 }
                 return Redirect(returnUrl);
             }
-            return View(new LoginViewModel(){ ErrorMessage = "Unknown error."});
+            return View(new LoginViewModel(_accessor){ ErrorMessage = "Unknown error."});
         }
+        [HttpGet]
+        public IActionResult Settings() {
+            var settings = new SettingsViewModel() { IsAdmin = _user.IsAdmin, UserSettings = _user.UserSettings, AdminSettings = _user.AdminSettings };
+            return View(settings);
+        }
+
+        //Changes password
+        [HttpPost]
+        public async Task<IActionResult> Settings([FromBody]PasswordViewModel settings) {
+            if (ModelState.IsValid)
+            {
+                if(!_userRepository.ValidateLogin(_user.Name, settings.OldPassword ))   {
+                    return BadRequest();
+                }
+                await _userRepository.ChangePassword(_user.Id, settings.NewPassword);
+                return Ok();
+            }
+            return BadRequest();
+        }
+        //Updates user settings
+        [HttpPost]
+        public async Task<IActionResult> UserSettings([FromBody]List<SettingsPostViewModel> userSettings) {
+            if (ModelState.IsValid)
+            {
+                foreach(var item in userSettings) {
+                    await _user.UpdateSetting(item);
+                }
+                return Ok();
+            }
+            return BadRequest();
+        }
+        //Updates app settings
+        [HttpPost]
+        public async Task<IActionResult> AdminSettings([FromBody]List<SettingsPostViewModel> adminSettings) {
+            if (ModelState.IsValid)
+            {
+                foreach(var item in adminSettings) {
+                    await _user.UpdateAdminSetting(item);
+                }
+                return Ok();
+            }
+            return BadRequest();
+        }
+
     }
 }

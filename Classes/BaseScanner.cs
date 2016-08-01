@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using VidsNet.DataModels;
 using VidsNet.Enums;
@@ -12,25 +14,33 @@ using VidsNet.Models;
 namespace VidsNet.Classes
 {
     public abstract class BaseScanner {
-        protected ILogger _logger;
-        private int _userId;
-        public BaseScanner(ILogger logger, int userId) {
-            _items = new List<Item>();
-            _logger = logger;
-            _userId = userId;
-        }
+        //IMPLEMENT THIS
+        protected abstract CheckTypeResult CheckType(string filePath);
 
+
+        protected ILogger _logger;
+        private UserData _user;
+        private DatabaseContext _db;
+        private Object _lock;
         private List<Item> _items;
         private ILogger logger;
-
+        private List<RealItem> _realItems;
+        public BaseScanner(ILogger logger, IHttpContextAccessor accessor, DatabaseContext db){
+            _db = db;
+            _items = new List<Item>();
+            _logger = logger;
+            _user = new UserData(accessor.HttpContext.User, db);
+            _lock = new Object();
+            _realItems = db.RealItems.ToList();
+        }
         private void Scan(string userPath, int userPathId, int realParentId = 0, int virtualParentId = 0) {
             _logger.LogDebug("Starting to scan " + userPath);
             var di = new DirectoryInfo(userPath);
 
             var dirs = di.GetDirectories();
             Parallel.ForEach(dirs, dir => {
-                var dirId = AddRealItem(realParentId, userPathId, dir.FullName, ItemType.Folder).Result;
-                var virtDirId = AddVirtualItem(_userId, dirId, virtualParentId, dir.Name, ItemType.Folder).Result;
+                var dirId = AddRealItem(realParentId, userPathId, dir.FullName, ItemType.Folder);
+                var virtDirId = AddVirtualItem(dirId, virtualParentId, dir.Name, ItemType.Folder);
                 var item = new Item() { Id = dirId, Path = dir.FullName, Type = ItemType.Folder };
                 _items.Add(item);
                 
@@ -42,11 +52,13 @@ namespace VidsNet.Classes
                 _logger.LogDebug("Found item " + file.Name);
                 var check = CheckType(file.Name);
                 if(check.CorrectType) {
-                    var itemId = AddRealItem(realParentId, userPathId, file.FullName, check.Type).Result;
+                   
+                    var itemId = AddRealItem(realParentId, userPathId, file.FullName, check.Type);
 
                     if(check.WriteVirtualItem) {
-                        var virtItemId = AddVirtualItem(_userId, itemId, virtualParentId, file.Name, check.Type);
+                        var virtItemId = AddVirtualItem(itemId, virtualParentId, file.Name, check.Type);
                     }
+
                     var item = new Item() { Id = itemId, Path = file.FullName, Type = check.Type };
 
                     _items.Add(item);
@@ -54,12 +66,10 @@ namespace VidsNet.Classes
             });
         }
 
-        protected abstract CheckTypeResult CheckType(string filePath);
-
-        protected async Task<int> AddRealItem(int parentId, int userPathId, string path, ItemType type)
+        protected int AddRealItem(int parentId, int userPathId, string path, ItemType type)
         {
-            using(var db = new DatabaseContext()) {
-                if(!db.RealItems.Any(x => x.Path == path)) {
+            lock(_lock) {
+                if(!_db.RealItems.Any(x => x.Path == path)) {
                     string name = Path.GetFileName(path);
                     var realItem = new RealItem()
                     {
@@ -70,51 +80,46 @@ namespace VidsNet.Classes
                         Path = path,
                         Extension = Path.GetExtension(path)
                     };
-                    db.RealItems.Add(realItem);
-                    //TODO: check if it doesnt make it worse
-                    await db.SaveChangesAsync();
+
+                    _db.RealItems.Add(realItem);
+                    _db.SaveChanges();
                     return realItem.Id;
                 }
-                else {
-                    var results = db.RealItems.Where(x => x.Path == path).ToList();
-                    return results[0].Id;
-                }
-                
+
+                return _db.RealItems.FirstOrDefault(x => x.Path == path).Id;
             }
         }
-
-        protected async Task<int> AddVirtualItem(int userId, int realItemId, int parentId, string name, ItemType type)
+        protected int AddVirtualItem(int realItemId, int parentId, string name, ItemType type)
         {
-            using(var db = new DatabaseContext()) {
-                if(!db.VirtualItems.Any(x => x.UserId == userId && x.RealItemId == realItemId)) {
+            lock(_lock) {
+                if(!_db.VirtualItems.Any(x => x.UserId == _user.Id && x.RealItemId == realItemId)) {
                     var virtualItem = new VirtualItem()
                     {
-                        UserId = userId,
+                        UserId = _user.Id,
                         RealItemId = realItemId,
                         ParentId = parentId,
                         Type = type,
-                        Name = name,
+                        Name = Path.GetFileNameWithoutExtension(name),
                         IsSeen = false,
                         IsDeleted = false
                     };
-                    db.VirtualItems.Add(virtualItem);
-                    await db.SaveChangesAsync();
+                    _db.VirtualItems.Add(virtualItem);
+                    _db.SaveChanges();
                     return virtualItem.Id;
                 }
-                else {
-                    var results = db.VirtualItems.Where(x => x.UserId == userId && x.RealItemId == realItemId).ToList();
-                    return results[0].Id;
-                }
-                
+
+                return _db.VirtualItems.FirstOrDefault(x => x.UserId == _user.Id && x.RealItemId == realItemId).Id;
             }
         }   
 
-        public void ScanItems(Dictionary<int, string> userPaths) {
+        public List<Item> ScanItems(List<UserSetting> userPaths) {
             if(userPaths.Count == 0) {
                 throw new ArgumentException("userPaths cannot be empty");
             }
 
-            Parallel.ForEach(userPaths, userPath => Scan(userPath.Value, userPath.Key));           
+            Parallel.ForEach(userPaths, userPath => Scan(userPath.Value, userPath.Id));   
+
+            return _items;        
         }
     }
 }

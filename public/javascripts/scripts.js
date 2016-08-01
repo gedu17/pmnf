@@ -1,3 +1,79 @@
+function updateAdminSettings() {
+    var inputs = $("#adminSettings :input").not(":button");
+    var data = [];
+    for(var i = 0; i < inputs.length; i++) {
+        data.push({ id:  inputs[i].id,
+                    value: inputs[i].value
+        });
+    }
+
+    $.ajax({
+            url: "/account/adminsettings",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8c",
+            data: JSON.stringify(data),
+            method: "POST"
+
+        }).complete(function(xhr, textStatus) {
+            if(xhr.status === 200) {
+                $("#error").html("User settings updated.");
+            }
+            else {
+                $("#error").html("Error updating user settings.");
+            }
+        });
+}
+
+function updateUserSettings() {
+    var inputs = $("#userSettings :input").not(":button");
+    var data = [];
+    for(var i = 0; i < inputs.length; i++) {
+        data.push({ id:  inputs[i].id,
+                    value: inputs[i].value
+        });
+    }
+
+    $.ajax({
+            url: "/account/usersettings",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8c",
+            data: JSON.stringify(data),
+            method: "POST"
+
+        }).complete(function(xhr, textStatus) {
+            if(xhr.status === 200) {
+                $("#error").html("User settings updated.");
+            }
+            else {
+                $("#error").html("Error updating user settings.");
+            }
+        });
+}
+
+function changePassword() {
+    if($("#newPassword").val() === $("#newPasswordConfirmation").val()) {
+        $.ajax({
+            url: "/account/settings",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8c",
+            data: JSON.stringify({OldPassword: $("#oldPassword").val(), NewPassword: $("#newPassword").val()}),
+            method: "POST"
+
+        }).complete(function(xhr, textStatus) {
+            if(xhr.status === 200) {
+                $("#error").html("Password CHANGED!!");
+            }
+            else {
+                $("#error").html("BAD OLD PASSWORD");
+            }
+        });
+    }
+    else {
+        $("#error").html("Passwords do not match");
+    }
+}
+
+
 function initModalForRename(id, value) {
     $("#popupTitle").text("Name Change");
     $("#popupBody").html('<form>'

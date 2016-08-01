@@ -13,7 +13,7 @@
     <script src="/public/javascripts/jquery-2.2.4.min.js"></script>
     <script src="/public/javascripts/bootstrap.min.js"></script>
     <script src="/public/javascripts/scripts.js"></script>
-    <title>@ViewBag.Title</title>
+    <title>VidsNet // @Model.PageTitle </title>
 </head>
 <body>
     <div class="modal fade" id="popup" tabindex="-1" role="dialog" aria-labelledby="popup" aria-hidden="true" >
@@ -46,7 +46,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="/">VidsNET</a>
+                <a class="navbar-brand" href="/">VidsNet</a>
             </div>
             <div class="collapse navbar-collapse" id="navbar">
                 @{
@@ -71,7 +71,6 @@
             </div>
         </div>
     </nav>
-
     <div class="container" id="maincontainer">
         <div class="content-box">
             @RenderBody()

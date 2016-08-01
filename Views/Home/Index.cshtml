@@ -1,5 +1,29 @@
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-    ViewBag.Title = "Indeksu indeksas";
 }
-<p> ecks DEE XD</p>
+
+@functions {
+
+    string PrintListing(List<VidsNet.Models.VirtualItem> items, List<VidsNet.Models.RealItem> realItems, int parent, int level) {
+        string ret = string.Empty;
+        int pad = level * 25;
+        List<VidsNet.Models.VirtualItem> it = items.Where(x => x.ParentId == parent).ToList();
+        foreach(VidsNet.Models.VirtualItem item in it) {
+            ret += "<div style=\"padding-left: " + pad + "px\">";
+            if(item.Type == VidsNet.Enums.ItemType.Folder) {
+                
+                    ret += "<p>"+item.Name+"</p>";
+                    ret += PrintListing(items, realItems, item.Id, level++);
+                
+            }
+            else {
+                var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
+                ret += "<a href=\"/item/view/" + item.Id + "/" + item.Name + realItem.Extension +"\">"+item.Name+"</a>";
+            }
+            ret += "</div>";
+        }
+        return ret;
+    }
+}
+
+@Html.Raw(@PrintListing(@Model.Data, @Model.Data2, 0, 1))

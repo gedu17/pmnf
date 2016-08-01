@@ -15,15 +15,13 @@ using VidsNet.Enums;
 namespace VidsNet.Controllers
 {
     [Authorize]
-    public class ItemController : Controller
+    public class ItemController : BaseController
     {
         private ILogger _logger;
-        private int _userId;
         private DatabaseContext _db;
-        public ItemController(ILoggerFactory logger, DatabaseContext db){//, int userId) {
+        public ItemController(ILoggerFactory logger, DatabaseContext db, IHttpContextAccessor accessor)
+         : base(accessor, db) {
             _logger = logger.CreateLogger("Itemsontroller");
-            //TODO: fix userid!!!!
-            _userId = 1;///userId;
             _db = db;
         }
 
@@ -36,7 +34,7 @@ namespace VidsNet.Controllers
             */
             var item = new VirtualItem()
             {
-                UserId = _userId,
+                UserId = _user.Id,
                 RealItemId = 0,
                 ParentId = frontEndItem.Parent,
                 Name = frontEndItem.Name,
@@ -55,7 +53,7 @@ namespace VidsNet.Controllers
             /* {
                 "name": "newName"
             }*/
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _userId).SingleOrDefault();
+            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).SingleOrDefault();
             if(item is VirtualItem) {
                 item.Name = frontEndItem.Name;
                 _db.VirtualItems.Update(item);
@@ -68,7 +66,7 @@ namespace VidsNet.Controllers
 
         [HttpDelete]
         public async Task<IActionResult> Delete(int id) {
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _userId && x.IsDeleted == false).SingleOrDefault();
+            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted == false).SingleOrDefault();
             if(item is VirtualItem) {
                 item.DeletedTime = DateTime.Now;
                 item.IsDeleted = true;
@@ -82,7 +80,7 @@ namespace VidsNet.Controllers
 
         [HttpPut]
         public async Task<IActionResult> Viewed(int id) {
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _userId && x.IsSeen == false).SingleOrDefault();
+            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsSeen == false).SingleOrDefault();
             if(item is VirtualItem) {
                 item.SeenTime = DateTime.Now;
                 item.IsSeen = true;

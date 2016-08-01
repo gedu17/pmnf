@@ -1,4 +1,6 @@
 using System.IO;
+using System.Security.Claims;
+using System.Security.Principal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using VidsNet.Classes;
+using VidsNet.DataModels;
 using VidsNet.Interfaces;
 using VidsNet.Models;
 
@@ -24,7 +27,9 @@ namespace VidsNet
             
 
             services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContext>();
-            services.AddSession();
+            services.AddSession(options => {
+                options.CookieName = ".VidsNet.Session";
+            });
             services.AddDistributedMemoryCache();
 
             services.AddAuthorization(options => {
@@ -50,7 +55,10 @@ namespace VidsNet
             services.AddDbContext<DatabaseContext>();
             services.AddMvc();
             services.AddScoped<IUserRepository, UserRepository>();
-
+            services.AddTransient<VideoScanner, VideoScanner>();
+            services.AddTransient<SubtitleScanner, SubtitleScanner>();
+            services.AddTransient<Scanner, Scanner>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -73,7 +81,6 @@ namespace VidsNet
             });
 
             app.UseMvcWithDefaultRoute();
-
             
             /*app.Run(context =>
             {

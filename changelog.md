@@ -1,5 +1,22 @@
 #VidsNET
 
+##1.4.0
+###Back-End
+- [x] Add ability to change settings
+- [x] Add ability to change password
+- [x] Add change password to user repository class
+- [x] Add UserData class
+- [x] Add ViewModels for data coming from front-end
+- [x] Add BaseController from which all other controllers inherit
+- [x] Change how claims are structured
+- [x] Add Scanner class which uses is used by controller
+- [x] Add locks to asynchronous actions in BaseScanner
+
+###Front-End
+- [x] Add Virtual view prototype
+- [x] Add Scan view prototype
+- [x] Add javacript functions to update settings and change password
+
 ##1.3.0
 ###Back-End
 - [x] Add Authentication with password
