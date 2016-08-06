@@ -6,12 +6,12 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using VidsNet.Models;
 
-namespace VidsNet.Classes
+namespace VidsNet.Scanners
 {
     public class SubtitleScanner : BaseScanner
     {
-        public SubtitleScanner(ILoggerFactory logger, IHttpContextAccessor accessor, DatabaseContext db)
-         : base(logger.CreateLogger("VideoScanner"), accessor, db) {
+        public SubtitleScanner(ILoggerFactory logger, UserData userData, DatabaseContext db)
+         : base(logger.CreateLogger("VideoScanner"), db, userData) {
         }
         protected override CheckTypeResult CheckType(string filePath)
         {

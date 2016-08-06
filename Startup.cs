@@ -1,21 +1,17 @@
 using System.IO;
-using System.Security.Claims;
-using System.Security.Principal;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-using VidsNet.Classes;
+using VidsNet.Scanners;
 using VidsNet.DataModels;
+using VidsNet.Enums;
 using VidsNet.Interfaces;
 using VidsNet.Models;
+using VidsNet.Classes;
 
 namespace VidsNet
 {
@@ -54,11 +50,19 @@ namespace VidsNet
             
             services.AddDbContext<DatabaseContext>();
             services.AddMvc();
+
             services.AddScoped<IUserRepository, UserRepository>();
+
+            
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.AddTransient<VideoScanner, VideoScanner>();
             services.AddTransient<SubtitleScanner, SubtitleScanner>();
             services.AddTransient<Scanner, Scanner>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<VideoType, VideoType>();
+            services.AddTransient<SubtitleType, SubtitleType>();
+            services.AddTransient<UserData, UserData>();
+            services.AddTransient<VideoViewer, VideoViewer>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -80,19 +84,17 @@ namespace VidsNet
                 AutomaticChallenge = true
             });
 
-            app.UseMvcWithDefaultRoute();
-            
-            /*app.Run(context =>
-            {
-                if(Setup.SettingsExist() && Setup.UsersExist()) {
-                    return context.Response.WriteAsync("Everything is set up correctly!");
-                }
-                else {
-                    return context.Response.WriteAsync("Your installation is not set up yet, or corrupted." +
-                        "<a href=\"#\">Please click here to set it up.</a>");
-                }
+            app.UseMvc(routes => {
+                routes.MapRoute(name: "Default",
+                template: "{controller}/{action}/{id?}",
+                defaults: new { controller = "Home", action = "Index" });
+
+
+                routes.MapRoute(name: "ItemView",
+                template: "{controller}/{action}/{id}/{name}",
+                defaults: new { controller = "Item", action = "View" });
                 
-            });*/
+            });
         }
     }
 }

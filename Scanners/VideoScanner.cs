@@ -5,12 +5,12 @@ using VidsNet.DataModels;
 using Microsoft.AspNetCore.Http;
 using VidsNet.Models;
 
-namespace VidsNet.Classes
+namespace VidsNet.Scanners
 {
     public class VideoScanner : BaseScanner
     {
-    public VideoScanner(ILoggerFactory logger, IHttpContextAccessor accessor, DatabaseContext db)
-     : base(logger.CreateLogger("VideoScanner"), accessor, db) {
+    public VideoScanner(ILoggerFactory logger, UserData userData, DatabaseContext db)
+     : base(logger.CreateLogger("VideoScanner"), db, userData) {
     }
         protected override CheckTypeResult CheckType(string filePath)
         {

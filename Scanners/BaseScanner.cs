@@ -11,7 +11,7 @@ using VidsNet.DataModels;
 using VidsNet.Enums;
 using VidsNet.Models;
 
-namespace VidsNet.Classes
+namespace VidsNet.Scanners
 {
     public abstract class BaseScanner {
         //IMPLEMENT THIS
@@ -25,11 +25,11 @@ namespace VidsNet.Classes
         private List<Item> _items;
         private ILogger logger;
         private List<RealItem> _realItems;
-        public BaseScanner(ILogger logger, IHttpContextAccessor accessor, DatabaseContext db){
+        public BaseScanner(ILogger logger, DatabaseContext db, UserData userData){ 
             _db = db;
             _items = new List<Item>();
             _logger = logger;
-            _user = new UserData(accessor.HttpContext.User, db);
+            _user = userData;
             _lock = new Object();
             _realItems = db.RealItems.ToList();
         }

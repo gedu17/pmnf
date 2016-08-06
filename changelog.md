@@ -1,5 +1,16 @@
 #VidsNET
 
+##1.5.0
+###Back-End
+- [x] Add Video and Subtitle serving in ItemController
+- [x] Add UserData class to dependency injection
+- [x] Move ViewModels to separate directory and namespace
+- [x] Add VideoViewer class to serve video and subtitles
+- [x] Add VideoViewResult class to return information to controller
+- [x] Add MimeTypes to VideoType and SubtitleType enums
+- [x] Add CurrentUrl variable to UserData
+- [x] Add Special route mapping for video view
+
 ##1.4.0
 ###Back-End
 - [x] Add ability to change settings

@@ -6,6 +6,7 @@ namespace VidsNet.Enums
     public class VideoType {
 
         private List<string> _types {get;set;}
+        private Dictionary<string, string> _mimes {get;set;}
 
         public VideoType() {
             _types = new List<string>();
@@ -18,10 +19,29 @@ namespace VidsNet.Enums
             _types.Add(".ogv");
             _types.Add(".webm");
             _types.Add(".mkv");
+            _mimes = new Dictionary<string, string>();
+            _mimes.Add(".avi", "video/x-msvideo");
+            _mimes.Add(".m4v", "video/x-m4v");
+            _mimes.Add(".asf", "video/x-ms-asf");
+            _mimes.Add(".wmv", "video/x-ms-wmv");
+            _mimes.Add(".mpeg", "video/mpeg");
+            _mimes.Add(".mp4", "video/mp4");
+            _mimes.Add(".ogv", "video/ogg");
+            _mimes.Add(".webm", "video/webm");
+            _mimes.Add(".mkv", "video/x-matroska");
         }
 
         public bool IsVideo(string extension) {
             return _types.Contains(extension);
+        }
+
+        public string GetMime(string extension) {
+            if(_mimes.ContainsKey(extension)) {
+                return _mimes[extension];
+            }
+            else {
+                return "application/octet-stream";
+            }
         }
 
     }

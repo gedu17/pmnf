@@ -1,9 +1,5 @@
 
-using System;
-using Microsoft.AspNetCore.Http;
-using VidsNet.Enums;
-
-namespace VidsNet.Models
+namespace VidsNet.ViewModels
 {
     public class PasswordViewModel : BaseViewModel
     {

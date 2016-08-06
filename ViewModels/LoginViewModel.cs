@@ -1,9 +1,6 @@
+using VidsNet.DataModels;
 
-using System;
-using Microsoft.AspNetCore.Http;
-using VidsNet.Enums;
-
-namespace VidsNet.Models
+namespace VidsNet.ViewModels
 {
     public class LoginViewModel : BaseViewModel
     {
@@ -12,7 +9,7 @@ namespace VidsNet.Models
 
         }
 
-        public LoginViewModel(IHttpContextAccessor accessor) : base(accessor) {
+        public LoginViewModel(UserData userData) : base(userData) {
             
         }
 

@@ -7,7 +7,7 @@ using VidsNet.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-namespace VidsNet.Classes
+namespace VidsNet.Scanners
 {
     public class Scanner {
         private VideoScanner _videoScanner;

@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Http;
 using VidsNet.Classes;
-using VidsNet.Enums;
 using System.Linq;
 using VidsNet.DataModels;
 
-namespace VidsNet.Models
+namespace VidsNet.ViewModels
 {
     public abstract class BaseViewModel {
         public virtual bool LoggedIn { get{ return true; } }
@@ -25,10 +23,10 @@ namespace VidsNet.Models
 
         public MenuItems MenuItems {get;}
 
-        public BaseViewModel(IHttpContextAccessor accessor) {
+        public BaseViewModel(UserData userData) {
             MenuItems = new MenuItems();
-            if(accessor != null) {
-                CurrentUrl = accessor.HttpContext.Request.Path;
+            if(userData != null) {
+                CurrentUrl = userData.CurrentUrl;
             }
             else {
                 CurrentUrl = "/";

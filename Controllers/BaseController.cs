@@ -9,8 +9,8 @@ namespace VidsNet.Controllers
         
         protected UserData _user;
 
-        public BaseController(IHttpContextAccessor accessor, DatabaseContext db) : base() {
-            _user = new UserData(accessor.HttpContext.User, db);
+        public BaseController(UserData user) {
+            _user = user;
         }
         
     }

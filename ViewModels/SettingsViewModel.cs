@@ -1,10 +1,8 @@
 
-using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
-using VidsNet.Enums;
+using VidsNet.Models;
 
-namespace VidsNet.Models
+namespace VidsNet.ViewModels
 {
     public class SettingsViewModel : BaseViewModel
     {

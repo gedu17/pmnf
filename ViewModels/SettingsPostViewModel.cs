@@ -1,4 +1,4 @@
-namespace VidsNet.DataModels
+namespace VidsNet.ViewModels
 {
     public class SettingsPostViewModel {
         public int Id {get;set;}

@@ -3,8 +3,10 @@ using System.Security.Claims;
 using VidsNet.Enums;
 using System.Linq;
 using System.Collections.Generic;
+using VidsNet.ViewModels;
 using VidsNet.Models;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace VidsNet.DataModels
 {
@@ -14,13 +16,17 @@ namespace VidsNet.DataModels
         public int Level {get; private set;}
 
         public bool IsAdmin {get; private set;}
+        public string CurrentUrl {get; private set;}
 
         private DatabaseContext _db;
 
         public List<UserSetting> UserSettings {get; private set;}
         public List<Setting> AdminSettings {get; private set;}
 
-        public UserData(ClaimsPrincipal principal, DatabaseContext db) {
+        public UserData(IHttpContextAccessor accessor, DatabaseContext db) {
+            var principal = accessor.HttpContext.User;
+
+            CurrentUrl = accessor.HttpContext.Request.Path;;
             _db = db;
             AdminSettings = new List<Setting>();
             IsAdmin = false;

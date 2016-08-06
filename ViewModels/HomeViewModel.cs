@@ -1,14 +1,11 @@
-using System;
-using VidsNet.Enums;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+using VidsNet.DataModels;
 
-namespace VidsNet.Models
+namespace VidsNet.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
 
-        public HomeViewModel(IHttpContextAccessor accessor) : base(accessor) {
+        public HomeViewModel(UserData userData) : base(userData) {
             
         }
 

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using VidsNet.DataModels;
 using VidsNet.Interfaces;
 using VidsNet.Models;
+using VidsNet.ViewModels;
 
 namespace VidsNet.Controllers
 {
@@ -19,13 +19,11 @@ namespace VidsNet.Controllers
     {
         private IUserRepository _userRepository;
         private readonly ILogger _logger;
-        private IHttpContextAccessor _accessor;
-        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory,IHttpContextAccessor accessor, DatabaseContext db)
-         : base(accessor, db)
+        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory, UserData userData)
+         : base(userData)
         {
             _userRepository = userRepository;
             _logger = loggerFactory.CreateLogger("AccountController");
-            _accessor = accessor;
         }
 
         /*[HttpPost]
@@ -66,7 +64,7 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
-            return View(new LoginViewModel(_accessor));
+            return View(new LoginViewModel(_user));
         }
 
 
@@ -78,7 +76,7 @@ namespace VidsNet.Controllers
             if (ModelState.IsValid)
             {
                 if(!_userRepository.ValidateLogin(model.Username, model.Password)) {
-                    return View(new LoginViewModel(_accessor) { ErrorMessage = "Bad login info."});
+                    return View(new LoginViewModel(_user) { ErrorMessage = "Bad login info."});
                 }
 
                 await HttpContext.Authentication.SignInAsync("Cookie", _userRepository.Get(model.Username),
@@ -93,7 +91,7 @@ namespace VidsNet.Controllers
                 }
                 return Redirect(returnUrl);
             }
-            return View(new LoginViewModel(_accessor){ ErrorMessage = "Unknown error."});
+            return View(new LoginViewModel(_user){ ErrorMessage = "Unknown error."});
         }
         [HttpGet]
         public IActionResult Settings() {

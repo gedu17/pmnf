@@ -1,13 +1,13 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using System.Linq;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-using VidsNet.Classes;
+using VidsNet.Scanners;
 using VidsNet.Models;
 using System.Threading.Tasks;
+using VidsNet.ViewModels;
+using VidsNet.DataModels;
 
 namespace VidsNet.Controllers
 {
@@ -16,13 +16,11 @@ namespace VidsNet.Controllers
     {
         private ILogger _logger;
         private Scanner _scanner;
-        private IHttpContextAccessor _accessor;
         private DatabaseContext _db;
-        public HomeController(ILoggerFactory logger, Scanner scanner, IHttpContextAccessor accessor, DatabaseContext db)
-         : base(accessor, db) {
+        public HomeController(ILoggerFactory logger, Scanner scanner, UserData userData, DatabaseContext db)
+         : base(userData) {
             _logger = logger.CreateLogger("HomeController");
             _scanner = scanner;
-            _accessor = accessor;
             _db = db;
         }
 
@@ -31,7 +29,7 @@ namespace VidsNet.Controllers
         {
             var data =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ToList();
             var data2 = _db.RealItems.ToList();
-            var model = new HomeViewModel(_accessor) {Data = data, Data2 = data2 };
+            var model = new HomeViewModel(_user) {Data = data, Data2 = data2 };
 
             return View(model);
         }
@@ -40,7 +38,7 @@ namespace VidsNet.Controllers
         //TEST METHOD
         public async Task<IActionResult> Scan() {
             var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").ToList());            
-            var model = new ScanViewModel(_accessor) {Data = set};
+            var model = new ScanViewModel(_user) {Data = set};
             return View(model);
         }
     }

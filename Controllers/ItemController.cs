@@ -1,8 +1,6 @@
 
 using System;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.IO;
@@ -11,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using VidsNet.DataModels;
 using VidsNet.Models;
 using VidsNet.Enums;
+using VidsNet.Classes;
 
 namespace VidsNet.Controllers
 {
@@ -19,10 +18,12 @@ namespace VidsNet.Controllers
     {
         private ILogger _logger;
         private DatabaseContext _db;
-        public ItemController(ILoggerFactory logger, DatabaseContext db, IHttpContextAccessor accessor)
-         : base(accessor, db) {
-            _logger = logger.CreateLogger("Itemsontroller");
-            _db = db;
+        private VideoViewer _viewer;
+        public ItemController(ILoggerFactory logger, DatabaseContext db, UserData userData, VideoViewer viewer)
+         : base(userData) {
+            _logger = logger.CreateLogger("ItemsController");
+            _db = db;            
+            _viewer = viewer;
         }
 
         [HttpPost]
@@ -91,11 +92,24 @@ namespace VidsNet.Controllers
 
             return NotFound();
         }
+
         [AllowAnonymous]
         [HttpGet]
-        //TODO: IMEPLEMENT VIDEO AND SUBTITLE SERVING
-        public async Task<IActionResult> view(int id, string name) {
-            return Ok();
+        public IActionResult View(int id, string name) {
+            if(ModelState.IsValid) {
+                var result = _viewer.View(id, name, Request.Headers["Range"].FirstOrDefault());
+
+                if(!string.IsNullOrWhiteSpace(result.ContentRange)) {
+                    Response.Headers.Add("Content-Range", result.ContentRange);
+                }
+
+                Response.ContentLength = result.ContentLength;
+                Response.StatusCode = result.StatusCode;
+
+                return result.ActionResult;
+            }
+
+            return NotFound();
         }
     }
 }
