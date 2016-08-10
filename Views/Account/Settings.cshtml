@@ -1,48 +1,72 @@
+@using VidsNet.Models;
+@using VidsNet.Classes;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
+    bool isAdmin = @Model.IsAdmin;
 }
 
-<p>Paskverdo pasikeitimas</p>
-<p id ="error"></p>
-<form>
-    <fieldset class="form-group">
-    <label for="oldPassword">Old password</label>
-    <input type="password" class="form-control" id="oldPassword">
-    </fieldset>
-    <fieldset class="form-group">
-    <label for="newPassword">New password</label>
-    <input type="password" class="form-control" id="newPassword">
-    </fieldset>
-    <fieldset class="form-group">
-    <label for="newPasswordConfirmation">New passsword confirmation</label>
-    <input type="password" class="form-control" id="newPasswordConfirmation">
-    </fieldset>
-    <button class="btn btn-primary" type="button" id="changePass" onclick="changePassword();">Change</button>
-</form>
+@functions {
 
-<p>Adminui prieinami setingai</p>
-@{
-    if(@Model.IsAdmin) {
-        <form id="adminSettings">
-            @foreach(VidsNet.Models.Setting item in (List<VidsNet.Models.Setting>)@Model.AdminSettings) {
-                <fieldset class="form-group">
-                    <label for="@item.Name">@item.Description</label>
-                    <input type="text" class="form-control" id="@item.Id" value="@item.Value">
-                </fieldset>
-            }
-            <button class="btn btn-primary" type="button" onclick="updateAdminSettings();">Update</button>
-        </form>
-    }
 }
-<p>Userio settingai</p>
-<form id="userSettings">
-@{
-    @foreach(VidsNet.Models.UserSetting item in (List<VidsNet.Models.UserSetting>)@Model.UserSettings) {
-        <fieldset class="form-group">
-            <label for="@item.Name">@item.Description</label>
-            <input type="text" class="form-control" id="@item.Id" value="@item.Value">
-        </fieldset>
-    }
-    <button class="btn btn-primary" type="button" onclick="updateUserSettings();">Update</button>
-}
-</form>
+
+<div class="container-fluid col-md-12 content-box">            
+    <div class="panel panel-default">
+        <div class="panel-heading">Settings</div>
+        <div class="panel-body">
+            <ul class="nav nav-tabs" id="settingsTabs">
+                <li role="presentation" class="active">
+                    <a href="#passwordChange" aria-controls="passwordChange" role="tab" data-toggle="tab">Password change</a>
+                </li>
+                <li role="presentation">
+                    <a href="#userPaths" aria-controls="userPaths" role="tab" data-toggle="tab">User paths</a>
+                </li>
+                @if(isAdmin) {
+                     <li role="presentation">
+                        <a href="#adminSettings" aria-controls="adminSettings" role="tab" data-toggle="tab">Admin settings</a>
+                     </li>
+                }
+            </ul>
+            <div class="tab-content" id="settingsContent">
+                <div role="tabpanel" class="tab-pane active" id="passwordChange" style="padding-top: 15px;">
+                    <div class="alert alert-danger hide" role="alert"></div>
+                    <form>
+                        <fieldset class="form-group">
+                            <label for="oldPassword">Old password</label>
+                            <input type="password" class="form-control" id="oldPassword" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <label for="newPassword">New password</label>
+                            <input type="password" class="form-control" id="newPassword" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <label for="newPasswordConfirmation">New passsword confirmation</label>
+                            <input type="password" class="form-control" id="newPasswordConfirmation" />
+                        </fieldset>
+                        <button class="btn btn-primary" type="button" id="changePass" onclick="changePassword();">Change</button>
+                    </form>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="userPaths" style="padding-top: 15px;">
+                    <div class="alert alert-danger hide" role="alert"></div>
+                    <div class="list-group">
+                        @Html.Raw(@HtmlHelpers.TagToString(@Model.DirectoryListing))
+                    </div>
+                    <button class="btn btn-primary" type="button" onclick="updateUserPaths();">Update</button>
+                </div>
+                @if(isAdmin) {
+                    <div role="tabpanel" class="tab-pane" id="adminSettings" style="padding-top: 15px;">
+                        <div class="alert alert-danger hide" role="alert"></div>
+                        <form id="adminSettings">
+                            @foreach(Setting item in @Model.AdminSettings) {
+                                <fieldset class="form-group">
+                                    <label for="@item.Name">@item.Description</label>
+                                    <input type="text" class="form-control" id="@item.Id" value="@item.Value">
+                                </fieldset>
+                            }
+                            <button class="btn btn-primary" type="button" onclick="updateAdminSettings();">Update</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

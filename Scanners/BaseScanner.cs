@@ -3,123 +3,104 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using VidsNet.DataModels;
 using VidsNet.Enums;
+using VidsNet.Interfaces;
 using VidsNet.Models;
 
 namespace VidsNet.Scanners
 {
-    public abstract class BaseScanner {
-        //IMPLEMENT THIS
-        protected abstract CheckTypeResult CheckType(string filePath);
-
+    public class BaseScanner {
 
         protected ILogger _logger;
-        private UserData _user;
         private DatabaseContext _db;
         private Object _lock;
         private List<Item> _items;
-        private ILogger logger;
         private List<RealItem> _realItems;
-        public BaseScanner(ILogger logger, DatabaseContext db, UserData userData){ 
+
+        public BaseScanner(ILoggerFactory logger, DatabaseContext db, UserData userData){ 
             _db = db;
             _items = new List<Item>();
-            _logger = logger;
-            _user = userData;
+            _logger = logger.CreateLogger("BaseScanner");
             _lock = new Object();
             _realItems = db.RealItems.ToList();
         }
-        private void Scan(string userPath, int userPathId, int realParentId = 0, int virtualParentId = 0) {
+
+        private bool IsHiddenItem(string name, bool ignoreHiddenFiles) {
+
+            if(!ignoreHiddenFiles) {
+                return false;
+            }
+
+            if(name[0] == '.') {
+                return true;
+            }
+
+            return false;
+        }
+
+        private List<Item> Scan(string userPath, int userPathId, List<IScannerCondition> conditions, bool ignoreHiddenFiles){
             _logger.LogDebug("Starting to scan " + userPath);
             var di = new DirectoryInfo(userPath);
-
             var dirs = di.GetDirectories();
+            var items = new List<Item>();
+            var item = new Item() { Path = userPath, Type = ItemType.Folder, UserPathId = userPathId };
             Parallel.ForEach(dirs, dir => {
-                var dirId = AddRealItem(realParentId, userPathId, dir.FullName, ItemType.Folder);
-                var virtDirId = AddVirtualItem(dirId, virtualParentId, dir.Name, ItemType.Folder);
-                var item = new Item() { Id = dirId, Path = dir.FullName, Type = ItemType.Folder };
-                _items.Add(item);
-                
-                Scan(dir.FullName, userPathId, dirId, virtDirId);
+                if(!IsHiddenItem(dir.Name, ignoreHiddenFiles)){ 
+                    item.Children.AddRange(Scan(dir.FullName, userPathId, conditions, ignoreHiddenFiles));
+                }              
             });
             
             var files = di.GetFiles();
             Parallel.ForEach(files, file => {
-                _logger.LogDebug("Found item " + file.Name);
-                var check = CheckType(file.Name);
-                if(check.CorrectType) {
-                   
-                    var itemId = AddRealItem(realParentId, userPathId, file.FullName, check.Type);
-
-                    if(check.WriteVirtualItem) {
-                        var virtItemId = AddVirtualItem(itemId, virtualParentId, file.Name, check.Type);
+                if(!IsHiddenItem(file.Name, ignoreHiddenFiles)){ 
+                    _logger.LogDebug("Found item " + file.Name);
+                    foreach(var condition in conditions) {
+                        var check = condition.CheckType(file.Name);
+                        if(check.CorrectType) {
+                            item.Children.Add(new Item() { Path = file.FullName, Type = check.Type, UserPathId = userPathId, 
+                            WriteVirtualItem = check.WriteVirtualItem });
+                            break;
+                        }
                     }
-
-                    var item = new Item() { Id = itemId, Path = file.FullName, Type = check.Type };
-
-                    _items.Add(item);
                 }
             });
+            items.Add(item);
+            return items;
         }
 
-        protected int AddRealItem(int parentId, int userPathId, string path, ItemType type)
-        {
-            lock(_lock) {
-                if(!_db.RealItems.Any(x => x.Path == path)) {
-                    string name = Path.GetFileName(path);
-                    var realItem = new RealItem()
-                    {
-                        ParentId = parentId,
-                        Type = type,
-                        UserPathId = userPathId,
-                        Name = name,
-                        Path = path,
-                        Extension = Path.GetExtension(path)
-                    };
-
-                    _db.RealItems.Add(realItem);
-                    _db.SaveChanges();
-                    return realItem.Id;
-                }
-
-                return _db.RealItems.FirstOrDefault(x => x.Path == path).Id;
-            }
-        }
-        protected int AddVirtualItem(int realItemId, int parentId, string name, ItemType type)
-        {
-            lock(_lock) {
-                if(!_db.VirtualItems.Any(x => x.UserId == _user.Id && x.RealItemId == realItemId)) {
-                    var virtualItem = new VirtualItem()
-                    {
-                        UserId = _user.Id,
-                        RealItemId = realItemId,
-                        ParentId = parentId,
-                        Type = type,
-                        Name = Path.GetFileNameWithoutExtension(name),
-                        IsSeen = false,
-                        IsDeleted = false
-                    };
-                    _db.VirtualItems.Add(virtualItem);
-                    _db.SaveChanges();
-                    return virtualItem.Id;
-                }
-
-                return _db.VirtualItems.FirstOrDefault(x => x.UserId == _user.Id && x.RealItemId == realItemId).Id;
-            }
-        }   
-
-        public List<Item> ScanItems(List<UserSetting> userPaths) {
+        public List<Item> ScanItems(List<UserSetting> userPaths, List<IScannerCondition> conditions, bool ignoreHiddenFiles = true) {
             if(userPaths.Count == 0) {
                 throw new ArgumentException("userPaths cannot be empty");
             }
 
-            Parallel.ForEach(userPaths, userPath => Scan(userPath.Value, userPath.Id));   
+            var items = new List<Item>();
+            Parallel.ForEach(userPaths, userPath => items.AddRange(Scan(userPath.Value, userPath.Id, conditions, ignoreHiddenFiles)));  
 
-            return _items;        
+            return Sort(items);        
+        }
+
+        public List<Item> ScanItems(List<string> userPaths,List<IScannerCondition> conditions, bool ignoreHiddenFiles = true) {
+            if(userPaths.Count == 0) {
+                throw new ArgumentException("userPaths cannot be empty");
+            }
+            var items = new List<Item>();
+            Parallel.ForEach(userPaths, userPath => items.AddRange(Scan(userPath, 0, conditions, ignoreHiddenFiles)));   
+
+            return Sort(items);        
+        }
+
+        public List<Item> Sort(List<Item> items) {
+            items = items.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+            for(int i = 0; i < items.Count; i++) {
+                items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                for(int j = 0; j < items[i].Children.Count; j++) {
+                    items[i].Children[j].Children = Sort(items[i].Children[j].Children);
+                }
+            }
+            return items;
         }
     }
 }

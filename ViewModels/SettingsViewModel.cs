@@ -1,6 +1,8 @@
 
 using System.Collections.Generic;
 using VidsNet.Models;
+using VidsNet.DataModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace VidsNet.ViewModels
 {
@@ -11,7 +13,9 @@ namespace VidsNet.ViewModels
         public List<UserSetting> UserSettings {get;set;}
         public List<Setting> AdminSettings {get;set;}
 
-        public SettingsViewModel() : base(null) {
+        public TagBuilder DirectoryListing {get;set;}
+
+        public SettingsViewModel(UserData userData) : base(userData) {
             UserSettings = new List<UserSetting>();
             AdminSettings = new List<Setting>();
         }

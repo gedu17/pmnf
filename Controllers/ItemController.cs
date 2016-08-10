@@ -95,6 +95,7 @@ namespace VidsNet.Controllers
 
         [AllowAnonymous]
         [HttpGet]
+        [Route("item/view/{id}/{name}")]
         public IActionResult View(int id, string name) {
             if(ModelState.IsValid) {
                 var result = _viewer.View(id, name, Request.Headers["Range"].FirstOrDefault());

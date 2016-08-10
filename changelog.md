@@ -1,5 +1,23 @@
 #VidsNET
 
+##1.6.0
+###Back-End
+- [x] Rework BaseScanner from abstract class to normal class
+- [x] Rework BaseScanner to only populate items
+- [x] Remove VideoScanner and SubtitleScanner
+- [x] Add IScannerCondition interface
+- [x] Implement IScannerCondition interfaces for videos and subtitles
+- [x] Add Item adding to database in Scanner class
+- [x] Add option in BaseScanner to ignore hidden files (in linux environment)
+- [x] Add sort method to BaseScanner to sort all items in list
+- [x] Add HtmlHelpers class with methods to be used in front-end
+
+###Front-End
+- [x] Add user paths tree to settings
+- [x] Add Virtual items template
+- [x] Add Settings template
+- [x] Add Login template
+
 ##1.5.0
 ###Back-End
 - [x] Add Video and Subtitle serving in ItemController

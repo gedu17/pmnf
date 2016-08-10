@@ -1,19 +1,12 @@
 using System.IO;
-using Microsoft.Extensions.Logging;
-using VidsNet.Enums;
 using VidsNet.DataModels;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using VidsNet.Models;
+using VidsNet.Enums;
+using VidsNet.Interfaces;
 
 namespace VidsNet.Scanners
 {
-    public class SubtitleScanner : BaseScanner
-    {
-        public SubtitleScanner(ILoggerFactory logger, UserData userData, DatabaseContext db)
-         : base(logger.CreateLogger("VideoScanner"), db, userData) {
-        }
-        protected override CheckTypeResult CheckType(string filePath)
+    public class SubtitleCondition : IScannerCondition {
+        public CheckTypeResult CheckType(string filePath)
         {
             var extension = Path.GetExtension(filePath);
             var subtitleType = new SubtitleType();

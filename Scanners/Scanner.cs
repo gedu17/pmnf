@@ -5,20 +5,26 @@ using Microsoft.Extensions.Logging;
 using VidsNet.DataModels;
 using VidsNet.Models;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using VidsNet.Enums;
+using System.IO;
+using VidsNet.Interfaces;
 
 namespace VidsNet.Scanners
 {
     public class Scanner {
-        private VideoScanner _videoScanner;
-        private SubtitleScanner _subtitleScanner;
+        private BaseScanner _baseScanner;
         private ILogger _logger;
         private DatabaseContext _db;
-        public Scanner(ILoggerFactory logger, VideoScanner videoScanner, SubtitleScanner subtitleScanner, DatabaseContext db) {
+        private Object _lock;
+        private UserData _user;
+        private ScanResult _scanResult;
+        public Scanner(ILoggerFactory logger, BaseScanner baseScanner, DatabaseContext db, UserData userData) {
             _db = db;
-            _videoScanner = videoScanner;
-            _subtitleScanner = subtitleScanner;
+            _baseScanner = baseScanner;
             _logger = logger.CreateLogger("Scanner");
+            _lock = new Object();
+            _user = userData;
+            _scanResult = new ScanResult();
         }
 
         public async Task<ScanResult> Scan(List<UserSetting> userPaths) {
@@ -26,55 +32,157 @@ namespace VidsNet.Scanners
                 throw new ArgumentException("userPaths cannot be empty");
             }
 
-            //TODO: use users paths ids !!!
             var oldItems = new List<Item>();
-            await _db.RealItems.AsQueryable().ForEachAsync(x => oldItems.Add(new Item() {Path = x.Path, Id = x.Id, Type = x.Type }));
-            var newItems = _videoScanner.ScanItems(userPaths);
-            var subtitles = _subtitleScanner.ScanItems(userPaths);
-            newItems = newItems.Union(subtitles).ToList();
+            var conditions = new List<IScannerCondition>() {new VideoCondition(), new SubtitleCondition()};
+            var scannedItems = _baseScanner.ScanItems(userPaths, conditions);
 
-            var result = GetItemChanges(oldItems, newItems);
+            //TODO: PASS CONDITIONS TO GETCHILDREN
+            foreach(var path in userPaths) {
+                var item = new Item() {Path = path.Value, Type = ItemType.Folder, UserPathId = path.Id, Children = GetChildren(path.Id, 0) };
+                oldItems.Add(item);
+            }
 
-            result.DeletedItems.ToList().ForEach(x => {
-                
-                var realItem = _db.RealItems.Where(y => y.Id == x.Id).FirstOrDefaultAsync().Result;
-                if(realItem is RealItem) {
-                    _db.RealItems.Remove(realItem);
-                }
+            Action<Item> newItemsFunc = it => {
+                _scanResult.NewItems.Add(it);
+            };
+            Action<Item> deletedItemsFunc = it => {
+                _scanResult.DeletedItems.Add(it);
+            };
 
-                var virtualItem = _db.VirtualItems.Where(y => y.RealItemId == x.Id).FirstOrDefaultAsync().Result;
-                if(virtualItem is VirtualItem) {
-                    _db.VirtualItems.Remove(virtualItem);
-                }
-            });
+            ItemDifferenceFinder(oldItems, scannedItems, newItemsFunc);
+            ItemDifferenceFinder(scannedItems, oldItems, deletedItemsFunc);
 
-            //TODO: Maybe should add to db here aswell instead of basescanner????
+            _scanResult.DeletedItems.ForEach(x => RemoveItems(x));
+            _scanResult.NewItems.ForEach(x => AddItems(x, 0, 0));
             await _db.SaveChangesAsync();
 
-            return result; 
+            return _scanResult; 
         }
 
-
-        private ScanResult GetItemChanges(List<Item> oldItems, List<Item> newItems) {
-            var result = new ScanResult();
-
-            if(oldItems.Count == 0) {
-                result.NewItems.AddRange(newItems);
-            }
-            else {
-                var difference = oldItems.Except(newItems).ToList();
-                difference.AddRange(newItems.Except(oldItems).ToList());
-                difference.ForEach(x =>  {
-                    if(oldItems.Any(y => x == y) == true) {
-                        result.DeletedItems.Add(x);
-                    } 
-                    else {
-                        result.NewItems.Add(x);
+        private void ItemDifferenceFinder(List<Item> oldItems, List<Item> newItems, Action<Item> addFunction) {
+            for(int i = 0; i < newItems.Count; i++) {
+                if(oldItems.Count < (i+1)){
+                    _scanResult.NewItems.Add(newItems[i]);
+                }
+                else {
+                    for(int j = 0; j < newItems[i].Children.Count; j++) {
+                        if(!oldItems[i].Children.Any(x => x.Path == newItems[i].Children[j].Path)) {
+                            addFunction(newItems[i].Children[j]);
+                        }
+                        else if(newItems[i].Children[j].Type == ItemType.Folder) {
+                            ItemDifferenceFinder(oldItems[i].Children[j].Children, newItems[i].Children[j].Children, addFunction);
+                        }                        
                     }
-                });
+                }
+            }
+        }
+
+        private void AddItems(Item item, int realParentId, int virtualParentId) {
+
+            if(realParentId == 0) {
+                realParentId = AddRealItem(realParentId, item.UserPathId, item.Path, item.Type);
+                if(item.WriteVirtualItem) {
+                    virtualParentId = AddVirtualItem(realParentId, virtualParentId, item.Path, item.Type);
+                }
             }
 
-            return result;
+            foreach(var child in item.Children) {
+                var realItem = AddRealItem(realParentId, child.UserPathId, child.Path, child.Type);
+                var virtualItem = 0;
+                if(child.WriteVirtualItem) {
+                    virtualItem = AddVirtualItem(realItem, virtualParentId, child.Path, child.Type);
+                }
+
+                if(child.Type == ItemType.Folder) {
+                    AddItems(child, realItem, virtualItem);
+                }
+            }
         }
+
+        private void RemoveItems(Item item) {
+            RealItem realItem;
+            VirtualItem virtualItem;
+            foreach(var child in item.Children) {
+                if(child.Type == ItemType.Folder) {
+                    RemoveItems(child);
+                }
+                else {
+                    realItem = _db.RealItems.Where(x => x.Id == item.Id).FirstOrDefault();
+                    if(realItem is RealItem) {
+                        _db.RealItems.Remove(realItem);
+                    }
+
+                    virtualItem = _db.VirtualItems.Where(x => x.RealItemId == item.Id).FirstOrDefault();
+                    if(virtualItem is VirtualItem) {
+                        _db.VirtualItems.Remove(virtualItem);
+                    }
+                }
+            }
+
+            realItem = _db.RealItems.Where(x => x.Id == item.Id).FirstOrDefault();
+            if(realItem is RealItem) {
+                _db.RealItems.Remove(realItem);
+            }
+
+            virtualItem = _db.VirtualItems.Where(x => x.RealItemId == item.Id).FirstOrDefault();
+            if(virtualItem is VirtualItem) {
+                _db.VirtualItems.Remove(virtualItem);
+            }
+        }
+
+        private List<Item> GetChildren(int userPathId, int parentId) {
+            var ret = new List<Item>();
+            var realItems = _db.RealItems.Where(x => x.ParentId == parentId && x.UserPathId == userPathId).OrderBy(x => x.Type).ThenBy(x => x.Name).ToList();
+            foreach(var realItem in realItems) {
+                var item = new Item() { Path = realItem.Path, Id = realItem.Id, Type = realItem.Type, UserPathId = realItem.UserPathId };
+                if(realItem.Type == ItemType.Folder) {
+                    item.Children.AddRange(GetChildren(userPathId, realItem.Id));
+                }
+                ret.Add(item);
+            }
+            return ret;
+        }
+
+        protected int AddRealItem(int parentId, int userPathId, string path, ItemType type)
+        {
+            if(!_db.RealItems.Any(x => x.Path == path)) {
+                string name = Path.GetFileName(path);
+                var realItem = new RealItem()
+                {
+                    ParentId = parentId,
+                    Type = type,
+                    UserPathId = userPathId,
+                    Name = name,
+                    Path = path,
+                    Extension = Path.GetExtension(path)
+                };
+
+                _db.RealItems.Add(realItem);
+                _db.SaveChanges();
+                return realItem.Id;
+            }
+
+            return _db.RealItems.FirstOrDefault(x => x.Path == path).Id;
+        }
+        protected int AddVirtualItem(int realItemId, int parentId, string name, ItemType type)
+        {
+            if(!_db.VirtualItems.Any(x => x.UserId == _user.Id && x.RealItemId == realItemId)) {
+                var virtualItem = new VirtualItem()
+                {
+                    UserId = _user.Id,
+                    RealItemId = realItemId,
+                    ParentId = parentId,
+                    Type = type,
+                    Name = Path.GetFileNameWithoutExtension(name),
+                    IsSeen = false,
+                    IsDeleted = false
+                };
+                _db.VirtualItems.Add(virtualItem);
+                _db.SaveChanges();
+                return virtualItem.Id;
+            }
+
+            return _db.VirtualItems.FirstOrDefault(x => x.UserId == _user.Id && x.RealItemId == realItemId).Id;
+        }   
     }
 }

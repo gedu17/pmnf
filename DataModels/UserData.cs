@@ -25,8 +25,10 @@ namespace VidsNet.DataModels
 
         public UserData(IHttpContextAccessor accessor, DatabaseContext db) {
             var principal = accessor.HttpContext.User;
-
-            CurrentUrl = accessor.HttpContext.Request.Path;;
+            if(accessor.HttpContext.Request.Path.HasValue) {
+                CurrentUrl = accessor.HttpContext.Request.Path.Value;
+            }
+            
             _db = db;
             AdminSettings = new List<Setting>();
             IsAdmin = false;

@@ -24,7 +24,7 @@ function updateAdminSettings() {
         });
 }
 
-function updateUserSettings() {
+function updateUserPaths() {
     var inputs = $("#userSettings :input").not(":button");
     var data = [];
     for(var i = 0; i < inputs.length; i++) {
@@ -164,3 +164,9 @@ function initModalForMove(id) {
         
     });
 }
+$( document ).ready(function() {
+    $('#settingsTabs a').click(function(e) {
+        e.preventDefault();
+        $(this).tab('show');
+    });
+});

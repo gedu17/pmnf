@@ -56,8 +56,7 @@ namespace VidsNet
             
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddTransient<VideoScanner, VideoScanner>();
-            services.AddTransient<SubtitleScanner, SubtitleScanner>();
+            services.AddTransient<BaseScanner, BaseScanner>();
             services.AddTransient<Scanner, Scanner>();
             services.AddTransient<VideoType, VideoType>();
             services.AddTransient<SubtitleType, SubtitleType>();
@@ -91,8 +90,9 @@ namespace VidsNet
 
 
                 routes.MapRoute(name: "ItemView",
-                template: "{controller}/{action}/{id}/{name}",
-                defaults: new { controller = "Item", action = "View" });
+                template: "item/view/{id}/{name}");
+                //template: "{controller}/{action}/{id}/{name}",
+                //defaults: new { controller = "Item", action = "View" });
                 
             });
         }

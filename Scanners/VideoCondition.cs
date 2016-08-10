@@ -1,18 +1,12 @@
 using System.IO;
-using Microsoft.Extensions.Logging;
-using VidsNet.Enums;
 using VidsNet.DataModels;
-using Microsoft.AspNetCore.Http;
-using VidsNet.Models;
+using VidsNet.Enums;
+using VidsNet.Interfaces;
 
 namespace VidsNet.Scanners
 {
-    public class VideoScanner : BaseScanner
-    {
-    public VideoScanner(ILoggerFactory logger, UserData userData, DatabaseContext db)
-     : base(logger.CreateLogger("VideoScanner"), db, userData) {
-    }
-        protected override CheckTypeResult CheckType(string filePath)
+    public class VideoCondition : IScannerCondition {
+        public CheckTypeResult CheckType(string filePath)
         {
             var extension = Path.GetExtension(filePath);
             var videoType = new VideoType();

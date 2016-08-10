@@ -8,6 +8,7 @@ using VidsNet.Models;
 using System.Threading.Tasks;
 using VidsNet.ViewModels;
 using VidsNet.DataModels;
+using System;
 
 namespace VidsNet.Controllers
 {
@@ -27,10 +28,9 @@ namespace VidsNet.Controllers
         
         public IActionResult Index()
         {
-            var data =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ToList();
+            var data =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
             var data2 = _db.RealItems.ToList();
             var model = new HomeViewModel(_user) {Data = data, Data2 = data2 };
-
             return View(model);
         }
 
