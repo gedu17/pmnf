@@ -1,5 +1,18 @@
 #VidsNET
 
+##1.7.0
+###Back-End
+- [x] Implement user level and active changer
+- [x] Fix bug in BaseScanner Sort method
+- [x] Fix bug in Scanner GetChildren method
+- [x] Add orphin removal in Scanner
+
+###Front-End
+- [x] Add Manage users tab in settings
+- [x] Add Create user tab in settings
+- [x] Implement User paths tab in settings
+- [x] Move all tabs in settings to separate partial views
+
 ##1.6.0
 ###Back-End
 - [x] Rework BaseScanner from abstract class to normal class

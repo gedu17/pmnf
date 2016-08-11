@@ -37,7 +37,7 @@ namespace VidsNet.Controllers
         [Route("scan")]
         //TEST METHOD
         public async Task<IActionResult> Scan() {
-            var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").ToList());            
+            var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList());            
             var model = new ScanViewModel(_user) {Data = set};
             return View(model);
         }

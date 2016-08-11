@@ -54,6 +54,9 @@ namespace VidsNet.Scanners
 
             _scanResult.DeletedItems.ForEach(x => RemoveItems(x));
             _scanResult.NewItems.ForEach(x => AddItems(x, 0, 0));
+
+            var orphinItems = _db.VirtualItems.Where(x => x.ParentId > 0 && !_db.VirtualItems.Any(y => y.Id == x.ParentId)).ToList();
+
             await _db.SaveChangesAsync();
 
             return _scanResult; 
@@ -132,7 +135,8 @@ namespace VidsNet.Scanners
 
         private List<Item> GetChildren(int userPathId, int parentId) {
             var ret = new List<Item>();
-            var realItems = _db.RealItems.Where(x => x.ParentId == parentId && x.UserPathId == userPathId).OrderBy(x => x.Type).ThenBy(x => x.Name).ToList();
+            var realItems = _db.RealItems.Where(x => x.ParentId == parentId && x.UserPathId == userPathId).OrderBy(x => x.Type).ToList();
+            realItems = realItems.OrderBy(x => x.Path, System.StringComparer.CurrentCultureIgnoreCase).ToList();
             foreach(var realItem in realItems) {
                 var item = new Item() { Path = realItem.Path, Id = realItem.Id, Type = realItem.Type, UserPathId = realItem.UserPathId };
                 if(realItem.Type == ItemType.Folder) {
@@ -145,7 +149,7 @@ namespace VidsNet.Scanners
 
         protected int AddRealItem(int parentId, int userPathId, string path, ItemType type)
         {
-            if(!_db.RealItems.Any(x => x.Path == path)) {
+            if(!_db.RealItems.Any(x => x.Path == path && x.UserPathId == userPathId)) {
                 string name = Path.GetFileName(path);
                 var realItem = new RealItem()
                 {

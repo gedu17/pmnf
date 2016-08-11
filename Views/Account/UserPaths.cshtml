@@ -1,0 +1,9 @@
+@using VidsNet.Models;
+@using VidsNet.Classes;
+
+<div class="alert alert-danger hide" role="alert" id="userPathsError"></div>
+<div class="alert alert-success hide" role="alert" id="userPathsSuccess"></div>
+<div class="list-group">
+    @Html.Raw(@HtmlHelpers.TagToString(@Model.DirectoryListing))
+</div>
+<button class="btn btn-primary" type="button" onclick="updateUserPaths();">Update</button>

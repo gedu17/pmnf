@@ -87,19 +87,34 @@ namespace VidsNet.Scanners
                 throw new ArgumentException("userPaths cannot be empty");
             }
             var items = new List<Item>();
-            Parallel.ForEach(userPaths, userPath => items.AddRange(Scan(userPath, 0, conditions, ignoreHiddenFiles)));   
+            Parallel.ForEach(userPaths, userPath => {
+                var scannedItems = Scan(userPath, 0, conditions, ignoreHiddenFiles);
+                if(scannedItems == null) {
+                    _logger.LogCritical("SCANNED ITEMS = NULL");
+                    items.Add(new Item() { Path = userPath, Type = ItemType.Folder, UserPathId = 0, WriteVirtualItem = false  });
+                }
+                else {
+                    items.AddRange(scannedItems);
+                }
+            });   
 
             return Sort(items);        
         }
 
         public List<Item> Sort(List<Item> items) {
-            items = items.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
-            for(int i = 0; i < items.Count; i++) {
-                items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
-                for(int j = 0; j < items[i].Children.Count; j++) {
-                    items[i].Children[j].Children = Sort(items[i].Children[j].Children);
+            if(items.Count > 0) {
+                items = items.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                for(int i = 0; i < items.Count; i++) {
+                    if(items[i] != null) {
+                        items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                        for(int j = 0; j < items[i].Children.Count; j++) {
+                            items[i].Children[j].Children = Sort(items[i].Children[j].Children);
+                        }
+                    }
                 }
             }
+            
+            
             return items;
         }
     }

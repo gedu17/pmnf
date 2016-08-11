@@ -1,0 +1,87 @@
+@using VidsNet.Models;
+@using VidsNet.Classes;
+@{
+    int i = 1;
+}
+<div class="alert alert-danger hide" role="alert" id="manageUsersError"></div>
+<div class="alert alert-success hide" role="alert" id="manageUsersSuccess"></div>
+<table class="table">
+    <thead>
+        <th>#</th>
+        <th>Name</th>
+        <th>Active</th>
+        <th>Admin</th>
+        <th>Delete</th>
+    </thead>
+    <tbody>
+        @foreach(User user in @Model.Users) {
+            <tr>
+                <td><strong>@(i++)</strong></td>
+                <td>@user.Name</td>
+                <td>
+                    @{
+                        string activeLink = string.Format("onclick=\"setActive({0}, {1})\"", user.Id, 1);
+                        string inactiveLink = string.Format("onclick=\"setActive({0}, {1})\"", user.Id, 0);
+                        string active = "";
+                        string inactive = "";
+                        if(user.Id == Model.UserId) {
+                            inactive = "hide";
+                            inactiveLink = "";
+                        }
+                        else if(user.Active == 1) {
+                            inactive = "hide";
+                        }
+                        else{
+                            active = "hide";
+                        }
+                    }
+
+                        <div id="@string.Format("{0}_active", @user.Id)" class="@active">
+                        <a href="#" @Html.Raw(@inactiveLink)>
+                            <span aria-hidden="true" class="glyphicon-ok glyphicon"></span>
+                        </a>
+                        </div>
+                        <div id="@string.Format("{0}_inactive", @user.Id)" class="@inactive">
+                            <a href="#" @Html.Raw(@activeLink)>
+                                <span aria-hidden="true" class="glyphicon-remove glyphicon"></span>
+                            </a>
+                        </div>
+                </td>
+                <td>
+                    @{
+                        string adminLink = string.Format("onclick=\"setAdmin({0}, {1})\"", user.Id, 1);
+                        string notadminLink = string.Format("onclick=\"setAdmin({0}, {1})\"", user.Id, 0);
+                        string admin = "";
+                        string notadmin = "";
+                        if(user.Id == Model.UserId) {
+                            notadmin = "hide";
+                            notadminLink = "";
+                        }
+                        else if(user.Level >= 9) {
+                            notadmin = "hide";
+                        }
+                        else{
+                            admin = "hide";
+                        }
+                    }
+                    <div id="@string.Format("{0}_admin", @user.Id)" class="@admin">
+                        <a href="#" @Html.Raw(@notadminLink)>
+                            <span aria-hidden="true" class="glyphicon-ok glyphicon"></span>
+                        </a>
+                    </div>
+                    <div id="@string.Format("{0}_notadmin", @user.Id)" class="@notadmin">
+                        <a href="#" @Html.Raw(@adminLink)>
+                            <span aria-hidden="true" class="glyphicon-remove glyphicon"></span>
+                        </a>
+                    </div>
+                </td>
+                <td>
+                    <a href="#" data-toggle="modal" data-target="#popup" onclick="deleteUser(@user.Id, '@user.Name');">
+                        <span aria-hidden="true" class="glyphicon-remove-circle glyphicon"></span>
+                    </a>
+                </td>
+            </tr>
+        }
+        
+    </tbody>
+</table>

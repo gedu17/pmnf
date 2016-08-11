@@ -1,0 +1,14 @@
+@using VidsNet.Models;
+@using VidsNet.Classes;
+
+<div class="alert alert-danger hide" role="alert" id="adminSettingsError"></div>
+<div class="alert alert-success hide" role="alert" id="adminSettingsSuccess"></div>
+<form id="adminSettings">
+    @foreach(Setting item in @Model.AdminSettings) {
+        <fieldset class="form-group">
+            <label for="@item.Name">@item.Description</label>
+            <input type="text" class="form-control" id="@item.Id" value="@item.Value">
+        </fieldset>
+    }
+    <button class="btn btn-primary" type="button" onclick="updateAdminSettings();">Update</button>
+</form>

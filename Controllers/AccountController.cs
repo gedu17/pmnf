@@ -33,33 +33,6 @@ namespace VidsNet.Controllers
             _baseScanner = baseScanner;
         }
 
-        /*[HttpPost]
-        [AllowAnonymous]
-        //[ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
-                    // Send an email with this link
-                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
-                    //    "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation(3, "User created a new account with password.");
-                    return RedirectToAction(nameof(HomeController.Index), "Home");
-                }
-                AddErrors(result);
-            }
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
-        }*/
         public async Task<IActionResult> Logout()
         {
             await HttpContext.Authentication.SignOutAsync("Cookie");
@@ -73,7 +46,6 @@ namespace VidsNet.Controllers
         {
             return View(new LoginViewModel(_user));
         }
-
 
         [HttpPost]
         [AllowAnonymous]
@@ -100,11 +72,12 @@ namespace VidsNet.Controllers
             }
             return View(new LoginViewModel(_user){ ErrorMessage = "Unknown error."});
         }
-
+        //TODO: MOVE TO CSHTML
         private void Helper(Item item, TagBuilder select, int level, List<UserSetting> userPaths) {
             var padding = level * 25;
             foreach (var child in item.Children)
             {
+                var pathValue = string.Format("{0}{1}", child.Path, Path.DirectorySeparatorChar);
                 var guid = Guid.NewGuid().ToString();
                 var div = new TagBuilder("div");
                 div.AddCssClass("list-group-item");
@@ -113,9 +86,10 @@ namespace VidsNet.Controllers
                 var checkbox = new TagBuilder("input");
                 checkbox.MergeAttribute("type", "checkbox");
                 checkbox.MergeAttribute("name", child.Path);
-                checkbox.MergeAttribute("value", child.Path);
+                checkbox.MergeAttribute("value", pathValue);
+                checkbox.MergeAttribute("id", child.Id.ToString());
 
-                if(userPaths.Any(x => x.Value == string.Format("{0}{1}", child.Path, Path.DirectorySeparatorChar))) {
+                if(userPaths.Any(x => x.Value == pathValue)) {
                     checkbox.MergeAttribute("checked", "checked");
                 }
 
@@ -180,7 +154,7 @@ namespace VidsNet.Controllers
             var folders = _baseScanner.ScanItems(new List<string>() { home }, new List<IScannerCondition>());
             var userPaths = _user.UserSettings.Where(x => x.Name == "path").ToList();
             var form = new TagBuilder("form");
-            form.MergeAttribute("id", "userPaths");
+            form.MergeAttribute("id", "userPathsForm");
 
             foreach(var folder in folders) {
                 Helper(folder, form, 1, userPaths);
@@ -189,16 +163,17 @@ namespace VidsNet.Controllers
                 IsAdmin = _user.IsAdmin, 
                 UserSettings = _user.UserSettings, 
                 AdminSettings = _user.AdminSettings,
-                DirectoryListing = form };
+                DirectoryListing = form,
+                Users = _userRepository.GetUsers() };
             return View(settings);
         }
 
         //Changes password
         [HttpPost]
-        public async Task<IActionResult> Settings([FromBody]PasswordViewModel settings) {
+        public async Task<IActionResult> Password([FromBody]PasswordViewModel settings) {
             if (ModelState.IsValid)
             {
-                if(!_userRepository.ValidateLogin(_user.Name, settings.OldPassword ))   {
+                if(!_userRepository.ValidateLogin(_user.Name, settings.OldPassword))   {
                     return BadRequest();
                 }
                 await _userRepository.ChangePassword(_user.Id, settings.NewPassword);
@@ -206,23 +181,13 @@ namespace VidsNet.Controllers
             }
             return BadRequest();
         }
-        //Updates user settings
-        [HttpPost]
-        public async Task<IActionResult> UserSettings([FromBody]List<SettingsPostViewModel> userSettings) {
-            if (ModelState.IsValid)
-            {
-                foreach(var item in userSettings) {
-                    await _user.UpdateSetting(item);
-                }
-                return Ok();
-            }
-            return BadRequest();
-        }
+
         //Updates app settings
         [HttpPost]
         public async Task<IActionResult> AdminSettings([FromBody]List<SettingsPostViewModel> adminSettings) {
             if (ModelState.IsValid)
             {
+                //TODO: REWORK TO PASS THE LIST TO METHOD?
                 foreach(var item in adminSettings) {
                     await _user.UpdateAdminSetting(item);
                 }
@@ -231,5 +196,67 @@ namespace VidsNet.Controllers
             return BadRequest();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> Active(int id, [FromBody]SettingsPostViewModel data) {
+            if(ModelState.IsValid) {
+                var value = int.Parse(data.Value);
+                if(_user.IsAdmin && value >= 0 && value <= 1) {
+                    if(await _userRepository.SetActive(id, value)){
+                        return Ok(); 
+                    }
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Admin(int id, [FromBody]SettingsPostViewModel data) {
+            if(ModelState.IsValid) {
+                var value = int.Parse(data.Value);
+                if(_user.IsAdmin && value >= 0 && value <= 1) {
+                    if(await _userRepository.SetAdmin(id, value)){
+                        return Ok(); 
+                    }
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody]NewUserViewModel user) {
+            if(ModelState.IsValid) {
+                _logger.LogInformation("Username: " + user.Name + ", Password: " + user.Password + ", Level: " + user.Level);
+                if(_user.IsAdmin) {
+                    if(await _userRepository.CreateUser(user)){
+                        return Ok();
+                    }
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpGet]
+        public IActionResult Users() {
+            return PartialView("ManageUsers", new ManageUsersViewModel(_user) { Users = _userRepository.GetUsers()});
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id) {
+            if(ModelState.IsValid && _user.IsAdmin) {
+                if(await _userRepository.DeleteUser(id)){
+                    return Ok();
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UserPaths([FromBody]List<SettingsPostViewModel> paths) {
+            if (ModelState.IsValid) {
+                await _user.UpdateUserPaths(paths);
+                return Ok();
+            }
+            return BadRequest();
+        }
     }
 }

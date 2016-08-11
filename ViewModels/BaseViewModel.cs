@@ -7,6 +7,7 @@ namespace VidsNet.ViewModels
 {
     public abstract class BaseViewModel {
         public virtual bool LoggedIn { get{ return true; } }
+        public int UserId {get;}
         public abstract string ActiveMenuItem {get;}
         public string CurrentUrl {get;}
 
@@ -28,9 +29,11 @@ namespace VidsNet.ViewModels
             MenuItems = new MenuItems();
             if(userData != null) {
                 CurrentUrl = userData.CurrentUrl;
+                UserId = userData.Id;
             }
             else {
                 CurrentUrl = "/";
+                UserId = 0;
             }
         }
     }

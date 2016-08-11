@@ -85,7 +85,7 @@
             if(item.Type == ItemType.Folder) {
                 
                 ret += GetFolderDiv(item, padding, items.Where(x => x.ParentId == item.Id).Count());
-                ret += PrintListing(items, realItems, item.Id, ++level);
+                ret += PrintListing(items, realItems, item.Id, level + 1);
             }
             else {
                 var realItem = realItems.Where(x => x.Id == item.RealItemId).First();

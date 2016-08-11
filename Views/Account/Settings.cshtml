@@ -2,11 +2,6 @@
 @using VidsNet.Classes;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-    bool isAdmin = @Model.IsAdmin;
-}
-
-@functions {
-
 }
 
 <div class="container-fluid col-md-12 content-box">            
@@ -20,50 +15,34 @@
                 <li role="presentation">
                     <a href="#userPaths" aria-controls="userPaths" role="tab" data-toggle="tab">User paths</a>
                 </li>
-                @if(isAdmin) {
+                @if(@Model.IsAdmin) {
                      <li role="presentation">
                         <a href="#adminSettings" aria-controls="adminSettings" role="tab" data-toggle="tab">Admin settings</a>
+                     </li>
+                     <li role="presentation">
+                        <a href="#createUser" aria-controls="createUser" role="tab" data-toggle="tab">Create user</a>
+                     </li>
+                     <li role="presentation">
+                        <a href="#manageUsers" aria-controls="manageUsers" role="tab" data-toggle="tab">Manage users</a>
                      </li>
                 }
             </ul>
             <div class="tab-content" id="settingsContent">
                 <div role="tabpanel" class="tab-pane active" id="passwordChange" style="padding-top: 15px;">
-                    <div class="alert alert-danger hide" role="alert"></div>
-                    <form>
-                        <fieldset class="form-group">
-                            <label for="oldPassword">Old password</label>
-                            <input type="password" class="form-control" id="oldPassword" />
-                        </fieldset>
-                        <fieldset class="form-group">
-                            <label for="newPassword">New password</label>
-                            <input type="password" class="form-control" id="newPassword" />
-                        </fieldset>
-                        <fieldset class="form-group">
-                            <label for="newPasswordConfirmation">New passsword confirmation</label>
-                            <input type="password" class="form-control" id="newPasswordConfirmation" />
-                        </fieldset>
-                        <button class="btn btn-primary" type="button" id="changePass" onclick="changePassword();">Change</button>
-                    </form>
+                    @Html.Partial("PasswordChange")
                 </div>
                 <div role="tabpanel" class="tab-pane" id="userPaths" style="padding-top: 15px;">
-                    <div class="alert alert-danger hide" role="alert"></div>
-                    <div class="list-group">
-                        @Html.Raw(@HtmlHelpers.TagToString(@Model.DirectoryListing))
-                    </div>
-                    <button class="btn btn-primary" type="button" onclick="updateUserPaths();">Update</button>
+                    @Html.Partial("UserPaths")
                 </div>
-                @if(isAdmin) {
+                @if(@Model.IsAdmin) {
                     <div role="tabpanel" class="tab-pane" id="adminSettings" style="padding-top: 15px;">
-                        <div class="alert alert-danger hide" role="alert"></div>
-                        <form id="adminSettings">
-                            @foreach(Setting item in @Model.AdminSettings) {
-                                <fieldset class="form-group">
-                                    <label for="@item.Name">@item.Description</label>
-                                    <input type="text" class="form-control" id="@item.Id" value="@item.Value">
-                                </fieldset>
-                            }
-                            <button class="btn btn-primary" type="button" onclick="updateAdminSettings();">Update</button>
-                        </form>
+                        @Html.Partial("AdminSettings")
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="createUser" style="padding-top: 15px;">
+                        @Html.Partial("CreateUser")
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="manageUsers" style="padding-top: 15px;">
+                        @Html.Partial("ManageUsers")
                     </div>
                 }
             </div>

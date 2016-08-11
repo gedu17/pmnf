@@ -52,14 +52,6 @@ namespace VidsNet.DataModels
             UserSettings = db.UserSettings.Where(x => x.UserId == Id).ToList();
         }
 
-        public async Task UpdateSetting(SettingsPostViewModel item) {
-            var setting = _db.UserSettings.Where(x => x.Id == item.Id && x.UserId == Id).FirstOrDefault();
-            if(setting is UserSetting) {
-                setting.Value = item.Value;
-                _db.UserSettings.Update(setting);
-                await _db.SaveChangesAsync();
-            }
-        }
 
         public async Task UpdateAdminSetting(SettingsPostViewModel item) {
             if(IsAdmin) {
@@ -70,6 +62,39 @@ namespace VidsNet.DataModels
                     await _db.SaveChangesAsync();
                 }
             }
+        }
+
+        public async Task UpdateUserPaths(List<SettingsPostViewModel> paths) {
+            var currentPaths = _db.UserSettings.Where(x => x.Name == "path").ToList();
+            var newPaths = new List<UserSetting>();
+            foreach (var path in paths)
+            {
+                var setting = new UserSetting() { Name = "path", UserId = Id, Value = path.Value, Description = "User path"};
+                newPaths.Add(setting);
+            }
+
+            var itemsToAdd = newPaths.Except(currentPaths).ToList();
+            var itemsToRemove = currentPaths.Except(newPaths).ToList();
+
+            _db.UserSettings.AddRange(itemsToAdd);
+            itemsToRemove.ForEach(x => {
+                var realItems = _db.RealItems.Where(y => y.UserPathId == x.Id).ToList();
+                var virtualItems = new List<VirtualItem>();
+                realItems.ForEach(y => {
+                    var virtualItem = _db.VirtualItems.Where(z => z.RealItemId == y.Id).FirstOrDefault();
+                    if(virtualItem is VirtualItem) {
+                        virtualItems.Add(virtualItem);
+                    }
+                });
+                _db.RealItems.RemoveRange(realItems);
+                _db.VirtualItems.RemoveRange(virtualItems);
+            });
+
+            _db.UserSettings.RemoveRange(itemsToRemove);
+
+            await _db.SaveChangesAsync();
+
+
         }
 
     }
