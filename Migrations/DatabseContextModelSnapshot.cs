@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using VidsNet.Models;
+using VidsNet.DataModels;
 
 namespace vidsnet.Migrations
 {

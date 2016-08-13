@@ -15,12 +15,12 @@ namespace VidsNet.Scanners
     public class BaseScanner {
 
         protected ILogger _logger;
-        private DatabaseContext _db;
+        private BaseDatabaseContext _db;
         private Object _lock;
         private List<Item> _items;
         private List<RealItem> _realItems;
 
-        public BaseScanner(ILoggerFactory logger, DatabaseContext db, UserData userData){ 
+        public BaseScanner(ILoggerFactory logger, BaseDatabaseContext db, UserData userData){ 
             _db = db;
             _items = new List<Item>();
             _logger = logger.CreateLogger("BaseScanner");
@@ -103,7 +103,7 @@ namespace VidsNet.Scanners
 
         public List<Item> Sort(List<Item> items) {
             if(items.Count > 0) {
-                items = items.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                items = items.Where(x => (x != null)).OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
                 for(int i = 0; i < items.Count; i++) {
                     if(items[i] != null) {
                         items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();

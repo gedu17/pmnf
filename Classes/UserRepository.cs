@@ -7,41 +7,57 @@ using VidsNet.Models;
 using VidsNet.Enums;
 using System.Threading.Tasks;
 using VidsNet.ViewModels;
+using VidsNet.DataModels;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Runtime.CompilerServices;
 
 namespace VidsNet.Classes
 {
     public class UserRepository : IUserRepository
     {
         private List<User> _users;
-        private DatabaseContext _db;
-        public UserRepository(DatabaseContext db) {
+        private BaseDatabaseContext _db;
+        public UserRepository(BaseDatabaseContext db) {
             _db = db;
             _users = new List<User>();
             _users.AddRange(_db.Users.ToList());
         }
 
-        bool IUserRepository.ValidateLogin(string userName, string password)
+        public bool ValidateLogin(string username, string password)
         {
-            if(_users.Exists(x => x.Name == userName && x.Password == password)) {
-                return true;
+            username = username.ToLower().Trim();
+            password = password.Trim();
+            var user = _users.Where(x => x.Name.ToLower() == username).FirstOrDefault();
+            if(user is User){
+                var hash = Convert.FromBase64String(user.Password);
+                var salt = GetSaltFromHashedPassword(hash);
+                var hashedPassword = GetPasswordFromHashedPassword(hash);
+                var checkedPassword = GetPasswordHash(password, salt);
+                
+                return PasswordsEqual(hashedPassword, checkedPassword);               
             }
             else {
                 return false;
             }
         }
 
-        async Task IUserRepository.ChangePassword(int userId, string password) {
+        public async Task<bool> ChangePassword(int userId, string password) {
             var user = _db.Users.Where(x => x.Id == userId).First();
-            user.Password = password;
-            _db.Users.Update(user);
-            await _db.SaveChangesAsync();
+            if(user is User) {
+                user.Password = Convert.ToBase64String(CreatePasswordHash(password));
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
-        List<User> IUserRepository.GetUsers() {
+        public List<User> GetUsers() {
             return _db.Users.ToList();
         }
 
-        ClaimsPrincipal IUserRepository.Get(string userName)
+        public ClaimsPrincipal Get(string userName)
         {
             var user = _users.FirstOrDefault(x => x.Name == userName);
 
@@ -49,10 +65,18 @@ namespace VidsNet.Classes
                 return null;
             }
 
+            var sessionHash = Guid.NewGuid().ToString();
+
+            user.SessionHash = sessionHash;
+            _db.Users.Update(user);
+            _db.SaveChanges();
+
+            //TODO: remove claims and leave only user/admin ?
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(Claims.Id.ToString(), user.Id.ToString(), ClaimValueTypes.String, Constants.Issuer));
             claims.Add(new Claim(Claims.Level.ToString(), user.Level.ToString(), ClaimValueTypes.String, Constants.Issuer));
             claims.Add(new Claim(Claims.Name.ToString(), user.Name.ToString(), ClaimValueTypes.String, Constants.Issuer));
+            claims.Add(new Claim(Claims.SessionHash.ToString(), sessionHash, ClaimValueTypes.String, Constants.Issuer));
 
             var userIdentity = new ClaimsIdentity("VidsNet");
             userIdentity.AddClaims(claims);
@@ -63,7 +87,7 @@ namespace VidsNet.Classes
 
         }
 
-        async Task<bool> IUserRepository.SetActive(int userId, int value)
+        public async Task<bool> SetActive(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
             if(user is User) {
@@ -75,7 +99,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        async Task<bool> IUserRepository.SetAdmin(int userId, int value)
+        public async Task<bool> SetAdmin(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
             if(user is User) {
@@ -87,11 +111,13 @@ namespace VidsNet.Classes
             return false;
         }
 
-        async Task<bool> IUserRepository.CreateUser(NewUserViewModel user)
+        public async Task<bool> CreateUser(NewUserViewModel user)
         {
-            if(!_db.Users.Any(x => x.Name == user.Name) && !string.IsNullOrWhiteSpace(user.Name) 
+            user.Name = user.Name.ToLower().Trim();
+            if(!_db.Users.Any(x => x.Name.ToLower() == user.Name) && !string.IsNullOrWhiteSpace(user.Name) 
             && !string.IsNullOrWhiteSpace(user.Password)) {
-                var newUser = new User() { Name = user.Name, Password = user.Password, Level = user.Level > 1 ? 9 : 1, Active = 1 };
+                var newUser = new User() { Name = user.Name, Password = Convert.ToBase64String(CreatePasswordHash(user.Password.Trim())),
+                 Level = user.Level > 1 ? 9 : 1, Active = 1 };
                 _db.Users.Add(newUser);
                 await _db.SaveChangesAsync();
                 return true;
@@ -99,7 +125,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        async Task<bool> IUserRepository.DeleteUser(int id) {
+        public async Task<bool> DeleteUser(int id) {
             var user = _db.Users.Where(x => x.Id == id).FirstOrDefault();
             if(user is User) {
                 var userPaths = _db.UserSettings.Where(x => x.UserId == id && x.Name == "path").ToList();
@@ -123,6 +149,74 @@ namespace VidsNet.Classes
             }
             
             return false;
+        }
+
+        public byte[] GetSaltFromHashedPassword(byte[] password)
+        {;
+            var salt = new byte[Constants.SaltSize];
+            Buffer.BlockCopy(password, 0, salt, 0, Constants.SaltSize);
+
+            return salt;
+        }
+
+        public byte[] GetPasswordFromHashedPassword(byte[] password)
+        {
+
+            var hash = new byte[Constants.PasswordSize];
+            Buffer.BlockCopy(password, Constants.SaltSize, hash, 0, Constants.PasswordSize);
+
+            return hash;
+        }
+
+        public byte[] CreatePasswordHash(string password)
+        {
+            var salt = GetSalt();
+            var hash = KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA512, Constants.KeyDerivationIterationCount,
+             Constants.PasswordSize);
+            var ret = new byte[salt.Length + hash.Length];
+            Buffer.BlockCopy(salt, 0, ret, 0, salt.Length);
+            Buffer.BlockCopy(hash, 0, ret, salt.Length, hash.Length);
+            return ret;
+        }
+        public byte[] GetPasswordHash(string password, byte[] salt)
+        {
+            return KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA512, Constants.KeyDerivationIterationCount,
+             Constants.PasswordSize);
+        }
+
+        public byte[] GetSalt() {
+            var salt = new byte [Constants.SaltSize];
+            using(var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            return salt;
+        }
+        
+        //TODO: NOT IN INTERFACE
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static bool PasswordsEqual(byte[] a, byte[] b)
+        {
+            if (a == null && b == null)
+            {
+                return true;
+            }
+            if (a == null || b == null || a.Length != b.Length)
+            {
+                return false;
+            }
+            var areSame = true;
+            for (var i = 0; i < a.Length; i++)
+            {
+                areSame &= (a[i] == b[i]);
+            }
+            return areSame;
+        }
+
+        public User GetUserBySessionHash(string hash)
+        {
+            return _users.Where(x => x.SessionHash == hash).FirstOrDefault();
         }
     }
 }

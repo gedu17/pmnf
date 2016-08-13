@@ -14,11 +14,11 @@ namespace VidsNet.Scanners
     public class Scanner {
         private BaseScanner _baseScanner;
         private ILogger _logger;
-        private DatabaseContext _db;
+        private BaseDatabaseContext _db;
         private Object _lock;
         private UserData _user;
         private ScanResult _scanResult;
-        public Scanner(ILoggerFactory logger, BaseScanner baseScanner, DatabaseContext db, UserData userData) {
+        public Scanner(ILoggerFactory logger, BaseScanner baseScanner, BaseDatabaseContext db, UserData userData) {
             _db = db;
             _baseScanner = baseScanner;
             _logger = logger.CreateLogger("Scanner");
@@ -104,7 +104,7 @@ namespace VidsNet.Scanners
 
         private void RemoveItems(Item item) {
             RealItem realItem;
-            VirtualItem virtualItem;
+            BaseVirtualItem virtualItem;
             foreach(var child in item.Children) {
                 if(child.Type == ItemType.Folder) {
                     RemoveItems(child);
@@ -113,10 +113,11 @@ namespace VidsNet.Scanners
                     realItem = _db.RealItems.Where(x => x.Id == item.Id).FirstOrDefault();
                     if(realItem is RealItem) {
                         _db.RealItems.Remove(realItem);
+                        _scanResult.DeletedItemsCount++;
                     }
 
                     virtualItem = _db.VirtualItems.Where(x => x.RealItemId == item.Id).FirstOrDefault();
-                    if(virtualItem is VirtualItem) {
+                    if(virtualItem is BaseVirtualItem) {
                         _db.VirtualItems.Remove(virtualItem);
                     }
                 }
@@ -125,10 +126,11 @@ namespace VidsNet.Scanners
             realItem = _db.RealItems.Where(x => x.Id == item.Id).FirstOrDefault();
             if(realItem is RealItem) {
                 _db.RealItems.Remove(realItem);
+                _scanResult.DeletedItemsCount++;
             }
 
             virtualItem = _db.VirtualItems.Where(x => x.RealItemId == item.Id).FirstOrDefault();
-            if(virtualItem is VirtualItem) {
+            if(virtualItem is BaseVirtualItem) {
                 _db.VirtualItems.Remove(virtualItem);
             }
         }
@@ -163,6 +165,9 @@ namespace VidsNet.Scanners
 
                 _db.RealItems.Add(realItem);
                 _db.SaveChanges();
+
+                _scanResult.NewItemsCount++;
+
                 return realItem.Id;
             }
 
@@ -171,19 +176,41 @@ namespace VidsNet.Scanners
         protected int AddVirtualItem(int realItemId, int parentId, string name, ItemType type)
         {
             if(!_db.VirtualItems.Any(x => x.UserId == _user.Id && x.RealItemId == realItemId)) {
-                var virtualItem = new VirtualItem()
-                {
-                    UserId = _user.Id,
-                    RealItemId = realItemId,
-                    ParentId = parentId,
-                    Type = type,
-                    Name = Path.GetFileNameWithoutExtension(name),
-                    IsSeen = false,
-                    IsDeleted = false
-                };
-                _db.VirtualItems.Add(virtualItem);
-                _db.SaveChanges();
-                return virtualItem.Id;
+                if(Constants.IsSqlite) {
+                    var virtualItem = new VirtualItemSqlite()
+                    {
+                        UserId = _user.Id,
+                        RealItemId = realItemId,
+                        ParentId = parentId,
+                        Type = type,
+                        Name = Path.GetFileNameWithoutExtension(name),
+                        IsViewed = false,
+                        IsDeleted = false
+                    };
+
+                    _db.VirtualItems.Add(virtualItem);
+                    _db.SaveChanges();
+                    return virtualItem.Id;
+                }
+                else {
+                    //TODO: add realitem or ef does it for me?
+                    var virtualItem = new VirtualItem()
+                    {
+                        UserId = _user.Id,
+                        RealItemId = realItemId,
+                        ParentId = parentId,
+                        Type = type,
+                        Name = Path.GetFileNameWithoutExtension(name),
+                        IsViewed = false,
+                        IsDeleted = false
+                    };
+
+                    _db.VirtualItems.Add(virtualItem);
+                    _db.SaveChanges();
+                    return virtualItem.Id;
+                }
+                
+                
             }
 
             return _db.VirtualItems.FirstOrDefault(x => x.UserId == _user.Id && x.RealItemId == realItemId).Id;

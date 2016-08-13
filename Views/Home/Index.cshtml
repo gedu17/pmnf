@@ -1,4 +1,5 @@
 @using VidsNet.Models;
+@using VidsNet.DataModels;
 @using VidsNet.Enums;
 @using VidsNet.Classes;
 @using Microsoft.AspNetCore.Mvc.Routing;
@@ -6,12 +7,12 @@
 @using System.IO;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-    var items = (List<VirtualItem>)@Model.Data;
+    var items = (List<BaseVirtualItem>)@Model.Data;
     int parentItemCount = items.AsQueryable().Where(x => x.ParentId == 0).Count();
 }
 
 @functions {   
-    string GetFolderDiv(VirtualItem item, int padding, int childCount) {
+    string GetFolderDiv(BaseVirtualItem item, int padding, int childCount) {
         var div = new TagBuilder("div");
         div.AddCssClass("list-group-item");
         div.MergeAttribute("style", string.Format("padding-left: {0}px", padding));
@@ -51,7 +52,7 @@
         return HtmlHelpers.TagToString(div);
     }
 
-    string GetItemDiv(VirtualItem item, int padding, UrlRouteContext urlContext) {
+    string GetItemDiv(BaseVirtualItem item, int padding, UrlRouteContext urlContext) {
         var div = new TagBuilder("div");
         div.AddCssClass("list-group-item");
         
@@ -76,11 +77,11 @@
         return HtmlHelpers.TagToString(div);
     }
 
-    string PrintListing(List<VirtualItem> items, List<RealItem> realItems, int parent, int level) {
+    string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems, int parent, int level) {
         string ret = string.Empty;
         int padding = level * 25;
-        List<VirtualItem> it = items.Where(x => x.ParentId == parent).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
-        foreach(VidsNet.Models.VirtualItem item in it) {
+        List<BaseVirtualItem> it = items.Where(x => x.ParentId == parent).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        foreach(var item in it) {
             
             if(item.Type == ItemType.Folder) {
                 
@@ -91,7 +92,7 @@
                 var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
                 var urlContext = new UrlRouteContext() {
                     RouteName = "ItemView",
-                    Values = new {id = item.Id, name = (item.Name + realItem.Extension)}
+                    Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)}
                 };
                 //ret += "<a href=\"" + Url.RouteUrl(context) + "\">"+item.Name+"</a>";
                 ret += GetItemDiv(item, padding, urlContext);

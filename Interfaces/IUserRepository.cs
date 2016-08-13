@@ -8,13 +8,20 @@ namespace VidsNet.Interfaces
 {
     public interface IUserRepository
     {
-        bool ValidateLogin(string userName, string password);
+        bool ValidateLogin(string username, string password);
         ClaimsPrincipal Get(string userName);
-        Task ChangePassword(int userId, string password);
+        Task<bool> ChangePassword(int userId, string password);
         List<User> GetUsers();
         Task<bool> SetActive(int userId, int value);
         Task<bool> SetAdmin(int userId, int value);
         Task<bool> CreateUser(NewUserViewModel user);
         Task<bool> DeleteUser(int id);
+        byte[] GetSaltFromHashedPassword(byte[] password);
+        byte[] GetPasswordFromHashedPassword(byte[] password);
+        byte[] GetPasswordHash(string password, byte[] salt);
+        byte[] CreatePasswordHash(string password);
+        byte[] GetSalt();
+        User GetUserBySessionHash(string hash);
+
     }
 }

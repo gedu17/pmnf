@@ -7,5 +7,6 @@ namespace VidsNet.Models
         public string Password {get;set;}
         public int Active {get;set;}
         public int Level {get;set;}
+        public string SessionHash {get;set;}
     }
 }

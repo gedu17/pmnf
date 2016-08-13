@@ -1,5 +1,20 @@
 #VidsNET
 
+##1.8.0
+###Back-End
+- [x] Convert username to lowercase and trim whitespaces when entered
+- [x] Add different database contexts depending on wether its Sqlite or any other dbms
+- [x] Add IsSqlite boolean constant
+- [x] Rename Seen to Viewed in VirtualItems table
+- [x] Implement password hashing
+- [x] Add Timestamp field in SystemMessages table
+- [x] Add AddSystemMessage and SetSystemMessageAsRead to UserData class
+- [x] Add SessionHash to User model
+- [x] Add SessionHash to view urls
+- [x] Check wether SessionHash matches and if user has requested video in his list
+- [x] Add UserPath rescan when user paths are updated
+- [x] Fix return url not working when logging in
+
 ##1.7.0
 ###Back-End
 - [x] Implement user level and active changer

@@ -17,8 +17,8 @@ namespace VidsNet.Controllers
     {
         private ILogger _logger;
         private Scanner _scanner;
-        private DatabaseContext _db;
-        public HomeController(ILoggerFactory logger, Scanner scanner, UserData userData, DatabaseContext db)
+        private BaseDatabaseContext _db;
+        public HomeController(ILoggerFactory logger, Scanner scanner, UserData userData, BaseDatabaseContext db)
          : base(userData) {
             _logger = logger.CreateLogger("HomeController");
             _scanner = scanner;

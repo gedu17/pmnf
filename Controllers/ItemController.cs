@@ -10,6 +10,7 @@ using VidsNet.DataModels;
 using VidsNet.Models;
 using VidsNet.Enums;
 using VidsNet.Classes;
+using VidsNet.Interfaces;
 
 namespace VidsNet.Controllers
 {
@@ -17,13 +18,15 @@ namespace VidsNet.Controllers
     public class ItemController : BaseController
     {
         private ILogger _logger;
-        private DatabaseContext _db;
+        private BaseDatabaseContext _db;
         private VideoViewer _viewer;
-        public ItemController(ILoggerFactory logger, DatabaseContext db, UserData userData, VideoViewer viewer)
+        private IUserRepository _userRepository;
+        public ItemController(ILoggerFactory logger, BaseDatabaseContext db, UserData userData, VideoViewer viewer, IUserRepository userRepository)
          : base(userData) {
             _logger = logger.CreateLogger("ItemsController");
             _db = db;            
             _viewer = viewer;
+            _userRepository = userRepository;
         }
 
         [HttpPost]
@@ -33,13 +36,15 @@ namespace VidsNet.Controllers
                 "Parent": 0
             }
             */
+
+            //TODO: differenciate between sqlite and nonsqlite!
             var item = new VirtualItem()
             {
                 UserId = _user.Id,
                 RealItemId = 0,
                 ParentId = frontEndItem.Parent,
                 Name = frontEndItem.Name,
-                IsSeen = false,
+                IsViewed = false,
                 IsDeleted = false,
                 Type = ItemType.Folder
             };
@@ -55,7 +60,8 @@ namespace VidsNet.Controllers
                 "name": "newName"
             }*/
             var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).SingleOrDefault();
-            if(item is VirtualItem) {
+            //TODO: check if bugged!
+            if(item is BaseVirtualItem) {
                 item.Name = frontEndItem.Name;
                 _db.VirtualItems.Update(item);
                 await _db.SaveChangesAsync();
@@ -68,7 +74,8 @@ namespace VidsNet.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(int id) {
             var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted == false).SingleOrDefault();
-            if(item is VirtualItem) {
+            //TODO: check if bugged!
+            if(item is BaseVirtualItem) {
                 item.DeletedTime = DateTime.Now;
                 item.IsDeleted = true;
                 _db.VirtualItems.Update(item);
@@ -81,10 +88,11 @@ namespace VidsNet.Controllers
 
         [HttpPut]
         public async Task<IActionResult> Viewed(int id) {
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsSeen == false).SingleOrDefault();
-            if(item is VirtualItem) {
-                item.SeenTime = DateTime.Now;
-                item.IsSeen = true;
+            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsViewed == false).SingleOrDefault();
+            //TODO: check if bugged!
+            if(item is BaseVirtualItem) {
+                item.ViewedTime = DateTime.Now;
+                item.IsViewed = true;
                 _db.VirtualItems.Update(item);
                 await _db.SaveChangesAsync();
                 return Ok();
@@ -95,19 +103,22 @@ namespace VidsNet.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        [Route("item/view/{id}/{name}")]
-        public IActionResult View(int id, string name) {
+        [Route("item/view/{session}/{id}/{name}")]
+        public IActionResult View(Guid session, int id, string name) {
             if(ModelState.IsValid) {
-                var result = _viewer.View(id, name, Request.Headers["Range"].FirstOrDefault());
+                var user = _userRepository.GetUserBySessionHash(session.ToString());
+                if(user is User) {
+                    var result = _viewer.View(id, user.Id, name, Request.Headers["Range"].FirstOrDefault());
 
-                if(!string.IsNullOrWhiteSpace(result.ContentRange)) {
-                    Response.Headers.Add("Content-Range", result.ContentRange);
+                    if(!string.IsNullOrWhiteSpace(result.ContentRange)) {
+                        Response.Headers.Add("Content-Range", result.ContentRange);
+                    }
+
+                    Response.ContentLength = result.ContentLength;
+                    Response.StatusCode = result.StatusCode;
+
+                    return result.ActionResult;
                 }
-
-                Response.ContentLength = result.ContentLength;
-                Response.StatusCode = result.StatusCode;
-
-                return result.ActionResult;
             }
 
             return NotFound();

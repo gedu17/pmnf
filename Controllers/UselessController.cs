@@ -11,8 +11,8 @@ namespace VidsNet.Controllers
     public class SettingsController : BaseController
     {
         private ILogger _logger;
-        private DatabaseContext _db;
-        public SettingsController(ILoggerFactory logger, DatabaseContext db, UserData userData) 
+        private BaseDatabaseContext _db;
+        public SettingsController(ILoggerFactory logger, BaseDatabaseContext db, UserData userData) 
         : base(userData) {
             _logger = logger.CreateLogger("Itemsontroller");
             _db = db;

@@ -25,12 +25,14 @@ namespace VidsNet.Controllers
         private IUserRepository _userRepository;
         private readonly ILogger _logger;
         private BaseScanner _baseScanner;
-        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory, UserData userData, BaseScanner baseScanner) 
+        private Scanner _scanner;
+        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory, UserData userData, BaseScanner baseScanner, Scanner scanner) 
          : base(userData)
         {
             _userRepository = userRepository;
             _logger = loggerFactory.CreateLogger("AccountController");
             _baseScanner = baseScanner;
+            _scanner = scanner;
         }
 
         public async Task<IActionResult> Logout()
@@ -44,13 +46,15 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
-            return View(new LoginViewModel(_user));
+            var model = new LoginViewModel(_user);
+            model.ReturnUrl = returnUrl;
+            return View(model);
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -58,17 +62,18 @@ namespace VidsNet.Controllers
                     return View(new LoginViewModel(_user) { ErrorMessage = "Bad login info."});
                 }
 
-                await HttpContext.Authentication.SignInAsync("Cookie", _userRepository.Get(model.Username),
+                var claimsPrincipal = _userRepository.Get(model.Username);
+                await HttpContext.Authentication.SignInAsync("Cookie", claimsPrincipal,
                 new AuthenticationProperties{
                     ExpiresUtc = DateTime.Now.AddMinutes(120),
                     IsPersistent = true,
                     AllowRefresh = true
                 });
 
-                if(string.IsNullOrWhiteSpace(returnUrl)) {
+                if(string.IsNullOrWhiteSpace(model.ReturnUrl)) {
                     return Redirect("/");
                 }
-                return Redirect(returnUrl);
+                return Redirect(model.ReturnUrl);
             }
             return View(new LoginViewModel(_user){ ErrorMessage = "Unknown error."});
         }
@@ -176,8 +181,10 @@ namespace VidsNet.Controllers
                 if(!_userRepository.ValidateLogin(_user.Name, settings.OldPassword))   {
                     return BadRequest();
                 }
-                await _userRepository.ChangePassword(_user.Id, settings.NewPassword);
-                return Ok();
+                if(await _userRepository.ChangePassword(_user.Id, settings.NewPassword)){
+                    return Ok();
+                }
+                
             }
             return BadRequest();
         }
@@ -254,6 +261,17 @@ namespace VidsNet.Controllers
         public async Task<IActionResult> UserPaths([FromBody]List<SettingsPostViewModel> paths) {
             if (ModelState.IsValid) {
                 await _user.UpdateUserPaths(paths);
+                var userPaths = _user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList();
+                var data = await _scanner.Scan(userPaths);
+
+                if(data.NewItemsCount > 0) {
+                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info); 
+                }
+                
+                if(data.DeletedItemsCount > 0) {
+                    await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info);
+                }
+                
                 return Ok();
             }
             return BadRequest();

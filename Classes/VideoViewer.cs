@@ -9,7 +9,7 @@ namespace VidsNet.Classes
 {
     public class VideoViewer : Controller {
 
-        private DatabaseContext _db;
+        private BaseDatabaseContext _db;
         private string _extension;
         private VideoType _videoType;
         private SubtitleType _subtitleType;
@@ -26,7 +26,7 @@ namespace VidsNet.Classes
         private string _range;
         private VideoViewResult _result;
         
-        public VideoViewer(DatabaseContext db, VideoType videoType, SubtitleType subtitleType) {
+        public VideoViewer(BaseDatabaseContext db, VideoType videoType, SubtitleType subtitleType) {
             _db = db;
             _videoType = videoType;
             _subtitleType = subtitleType;
@@ -39,11 +39,11 @@ namespace VidsNet.Classes
             _result = new VideoViewResult();
         }
 
-        public VideoViewResult View(int id, string name, string range) {
+        public VideoViewResult View(int id, int userId, string name, string range) {
             _range = range;
             _name = name;
             _extension = Path.GetExtension(name);
-            if(ViewItemExists(id)) {
+            if(ViewItemExists(id, userId)) {
                 if(_videoType.IsVideo(_extension)) {
                     return ViewVideo();
                 }
@@ -212,9 +212,10 @@ namespace VidsNet.Classes
             return _result;
         }
 
-        private bool ViewItemExists(int id) {
-            var virtualItem = _db.VirtualItems.Where(x => x.Id == id).FirstOrDefault();
-            if(virtualItem is VirtualItem) {
+        private bool ViewItemExists(int id, int userId) {
+            var virtualItem = _db.VirtualItems.Where(x => x.Id == id && x.UserId == userId).FirstOrDefault();
+            //TODO: MIGHT BE BUGGED AFTER CHANGING TO BaseVirtualItem!
+            if(virtualItem is BaseVirtualItem) {
                 var realItem = _db.RealItems.Where(x => x.Id == virtualItem.RealItemId).FirstOrDefault();
                 if(realItem is RealItem) {
                     _item = realItem;

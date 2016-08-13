@@ -10,6 +10,7 @@ namespace VidsNet.ViewModels
         public int UserId {get;}
         public abstract string ActiveMenuItem {get;}
         public string CurrentUrl {get;}
+        public string SessionHash {get;}
 
         public string PageTitle
         {
@@ -30,6 +31,7 @@ namespace VidsNet.ViewModels
             if(userData != null) {
                 CurrentUrl = userData.CurrentUrl;
                 UserId = userData.Id;
+                SessionHash = userData.SessionHash;
             }
             else {
                 CurrentUrl = "/";

@@ -22,7 +22,17 @@ namespace VidsNet
             services.AddLogging();
             
 
-            services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContext>();
+            if(Constants.IsSqlite) {
+                services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContextSqlite>();
+                services.AddDbContext<DatabaseContextSqlite>();
+                services.AddSingleton<BaseDatabaseContext, DatabaseContextSqlite>(); 
+            }
+            else {
+                services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContext>();
+                services.AddDbContext<DatabaseContext>();
+                services.AddSingleton<BaseDatabaseContext, DatabaseContext>(); 
+            }
+            
             services.AddSession(options => {
                 options.CookieName = ".VidsNet.Session";
             });
@@ -32,11 +42,6 @@ namespace VidsNet
                 options.AddPolicy("Default", policy => {
                     policy.AddAuthenticationSchemes("Automatic");
                     policy.RequireAuthenticatedUser();
-                });
-                options.AddPolicy("Administrator", policy =>  {
-                    policy.AddAuthenticationSchemes("Automatic");
-                    policy.RequireAuthenticatedUser();
-                    policy.RequireRole("Administrator");
                 });
             });
 
@@ -48,7 +53,7 @@ namespace VidsNet
             //TODO: configure if needed
             //services.AddDataProtection();
             
-            services.AddDbContext<DatabaseContext>();
+            
             services.AddMvc();
 
             services.AddScoped<IUserRepository, UserRepository>();
@@ -90,7 +95,7 @@ namespace VidsNet
 
 
                 routes.MapRoute(name: "ItemView",
-                template: "item/view/{id}/{name}");
+                template: "item/view/{session}/{id}/{name}");
                 //template: "{controller}/{action}/{id}/{name}",
                 //defaults: new { controller = "Item", action = "View" });
                 
