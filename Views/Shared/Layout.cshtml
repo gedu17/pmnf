@@ -1,3 +1,4 @@
+@using VidsNet.DataModels;
 @model VidsNet.ViewModels.BaseViewModel
 <!html5>
 <html>
@@ -49,23 +50,21 @@
                 <a class="navbar-brand" href="/">VidsNet</a>
             </div>
             <div class="collapse navbar-collapse" id="navbar">
-                @{
-                    if(@Model.LoggedIn) {
-                        <ul class="nav navbar-nav">
-                            @foreach(VidsNet.DataModels.MenuItem item in @Model.MenuItems) {
-                                if(@item.Name == @Model.ActiveMenuItem) {
-                                    <li class="active">
-                                        <a href="#">@item.Name</a>
-                                    </li>
-                                }
-                                else {
-                                    <li>
-                                        <a href="@item.Url">@item.Name</a>
-                                    </li>
-                                }                                
+                @if(@Model.LoggedIn) {
+                    <ul class="nav navbar-nav">
+                        @foreach(MenuItem item in @Model.MenuItems) {
+                            if(@item.Name == @Model.ActiveMenuItem) {
+                                <li class="active">
+                                    <a href="#">@item.Name</a>
+                                </li>
                             }
-                        </ul>
-                    }
+                            else {
+                                <li>
+                                    <a href="@item.Url">@item.Name</a>
+                                </li>
+                            }                                
+                        }
+                    </ul>
                 }
                 
             </div>

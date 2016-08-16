@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VidsNet.DataModels;
-using VidsNet.Models;
+using VidsNet.Classes;
 
 namespace VidsNet.Controllers
 {

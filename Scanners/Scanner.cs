@@ -8,6 +8,7 @@ using System.Linq;
 using VidsNet.Enums;
 using System.IO;
 using VidsNet.Interfaces;
+using VidsNet.Classes;
 
 namespace VidsNet.Scanners
 {
@@ -32,20 +33,22 @@ namespace VidsNet.Scanners
                 throw new ArgumentException("userPaths cannot be empty");
             }
 
-            var oldItems = new List<Item>();
+            var oldItems = new List<ScanItem>();
             var conditions = new List<IScannerCondition>() {new VideoCondition(), new SubtitleCondition()};
             var scannedItems = _baseScanner.ScanItems(userPaths, conditions);
 
-            //TODO: PASS CONDITIONS TO GETCHILDREN
+            //Adding directory condition as a workaround to satisfy condition when retrieving items from database
+            conditions.Add(new DirectoryCondition());
+
             foreach(var path in userPaths) {
-                var item = new Item() {Path = path.Value, Type = ItemType.Folder, UserPathId = path.Id, Children = GetChildren(path.Id, 0) };
+                var item = new ScanItem() {Path = path.Value, Type = Item.Folder, UserPathId = path.Id, Children = GetChildren(path.Id, 0, conditions) };
                 oldItems.Add(item);
             }
 
-            Action<Item> newItemsFunc = it => {
+            Action<ScanItem> newItemsFunc = it => {
                 _scanResult.NewItems.Add(it);
             };
-            Action<Item> deletedItemsFunc = it => {
+            Action<ScanItem> deletedItemsFunc = it => {
                 _scanResult.DeletedItems.Add(it);
             };
 
@@ -62,7 +65,7 @@ namespace VidsNet.Scanners
             return _scanResult; 
         }
 
-        private void ItemDifferenceFinder(List<Item> oldItems, List<Item> newItems, Action<Item> addFunction) {
+        private void ItemDifferenceFinder(List<ScanItem> oldItems, List<ScanItem> newItems, Action<ScanItem> addFunction) {
             for(int i = 0; i < newItems.Count; i++) {
                 if(oldItems.Count < (i+1)){
                     _scanResult.NewItems.Add(newItems[i]);
@@ -72,7 +75,7 @@ namespace VidsNet.Scanners
                         if(!oldItems[i].Children.Any(x => x.Path == newItems[i].Children[j].Path)) {
                             addFunction(newItems[i].Children[j]);
                         }
-                        else if(newItems[i].Children[j].Type == ItemType.Folder) {
+                        else if(newItems[i].Children[j].Type == Item.Folder) {
                             ItemDifferenceFinder(oldItems[i].Children[j].Children, newItems[i].Children[j].Children, addFunction);
                         }                        
                     }
@@ -80,7 +83,7 @@ namespace VidsNet.Scanners
             }
         }
 
-        private void AddItems(Item item, int realParentId, int virtualParentId) {
+        private void AddItems(ScanItem item, int realParentId, int virtualParentId) {
 
             if(realParentId == 0) {
                 realParentId = AddRealItem(realParentId, item.UserPathId, item.Path, item.Type);
@@ -96,17 +99,17 @@ namespace VidsNet.Scanners
                     virtualItem = AddVirtualItem(realItem, virtualParentId, child.Path, child.Type);
                 }
 
-                if(child.Type == ItemType.Folder) {
+                if(child.Type == Item.Folder) {
                     AddItems(child, realItem, virtualItem);
                 }
             }
         }
 
-        private void RemoveItems(Item item) {
+        private void RemoveItems(ScanItem item) {
             RealItem realItem;
             BaseVirtualItem virtualItem;
             foreach(var child in item.Children) {
-                if(child.Type == ItemType.Folder) {
+                if(child.Type == Item.Folder) {
                     RemoveItems(child);
                 }
                 else {
@@ -135,21 +138,22 @@ namespace VidsNet.Scanners
             }
         }
 
-        private List<Item> GetChildren(int userPathId, int parentId) {
-            var ret = new List<Item>();
-            var realItems = _db.RealItems.Where(x => x.ParentId == parentId && x.UserPathId == userPathId).OrderBy(x => x.Type).ToList();
-            realItems = realItems.OrderBy(x => x.Path, System.StringComparer.CurrentCultureIgnoreCase).ToList();
+        private List<ScanItem> GetChildren(int userPathId, int parentId, List<IScannerCondition> conditions) {
+            var ret = new List<ScanItem>();
+            var realItems = _db.RealItems.Where(x => x.ParentId == parentId && x.UserPathId == userPathId).ToList();
+            realItems = realItems.Where(x => conditions.Any(y => y.CheckType(x.Path).CorrectType == true)).ToList();
+            realItems = realItems.OrderBy(x => x.Type).ThenBy(x => x.Path, System.StringComparer.CurrentCultureIgnoreCase).ToList();
             foreach(var realItem in realItems) {
-                var item = new Item() { Path = realItem.Path, Id = realItem.Id, Type = realItem.Type, UserPathId = realItem.UserPathId };
-                if(realItem.Type == ItemType.Folder) {
-                    item.Children.AddRange(GetChildren(userPathId, realItem.Id));
+                var item = new ScanItem() { Path = realItem.Path, Id = realItem.Id, Type = realItem.Type, UserPathId = realItem.UserPathId };
+                if(realItem.Type == Item.Folder) {
+                    item.Children.AddRange(GetChildren(userPathId, realItem.Id, conditions));
                 }
                 ret.Add(item);
             }
             return ret;
         }
 
-        protected int AddRealItem(int parentId, int userPathId, string path, ItemType type)
+        protected int AddRealItem(int parentId, int userPathId, string path, Item type)
         {
             if(!_db.RealItems.Any(x => x.Path == path && x.UserPathId == userPathId)) {
                 string name = Path.GetFileName(path);
@@ -173,7 +177,7 @@ namespace VidsNet.Scanners
 
             return _db.RealItems.FirstOrDefault(x => x.Path == path).Id;
         }
-        protected int AddVirtualItem(int realItemId, int parentId, string name, ItemType type)
+        protected int AddVirtualItem(int realItemId, int parentId, string name, Item type)
         {
             if(!_db.VirtualItems.Any(x => x.UserId == _user.Id && x.RealItemId == realItemId)) {
                 if(Constants.IsSqlite) {
@@ -193,7 +197,6 @@ namespace VidsNet.Scanners
                     return virtualItem.Id;
                 }
                 else {
-                    //TODO: add realitem or ef does it for me?
                     var virtualItem = new VirtualItem()
                     {
                         UserId = _user.Id,

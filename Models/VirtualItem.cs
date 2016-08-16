@@ -18,7 +18,7 @@ namespace VidsNet.Models
         public override bool IsDeleted {get;set;}
         public override DateTime DeletedTime {get;set;}
         public override DateTime ViewedTime {get;set;}
-        public override ItemType Type {get;set;}
+        public override Enums.Item Type {get;set;}
         public virtual RealItem RealItem {get;set;}
     }
 }

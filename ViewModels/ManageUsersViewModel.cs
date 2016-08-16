@@ -1,7 +1,7 @@
 
 using System.Collections.Generic;
 using VidsNet.Models;
-using VidsNet.DataModels;
+using VidsNet.Classes;
 
 namespace VidsNet.ViewModels
 {

@@ -5,14 +5,12 @@ using VidsNet.Interfaces;
 
 namespace VidsNet.Scanners
 {
-    public class VideoCondition : IScannerCondition {
+    public class DirectoryCondition : IScannerCondition {
         public ScannerConditionResult CheckType(string filePath)
         {
-            var extension = Path.GetExtension(filePath);
-            var video = new Video();
-            if(video.IsVideo(extension))
+            if(Directory.Exists(filePath))
             {
-                return new ScannerConditionResult() { CorrectType = true, Type = Item.Video, WriteVirtualItem = true };
+                return new ScannerConditionResult() { CorrectType = true, Type = Item.Folder, WriteVirtualItem = true };
             }
             return new ScannerConditionResult() { CorrectType = false, Type = Item.None, WriteVirtualItem = false };
         }

@@ -1,4 +1,4 @@
-using VidsNet.DataModels;
+using VidsNet.Classes;
 
 namespace VidsNet.ViewModels
 {

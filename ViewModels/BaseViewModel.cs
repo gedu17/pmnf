@@ -1,7 +1,6 @@
 using VidsNet.Classes;
 using System.Linq;
 using VidsNet.DataModels;
-using System;
 
 namespace VidsNet.ViewModels
 {

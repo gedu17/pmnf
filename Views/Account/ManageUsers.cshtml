@@ -76,9 +76,14 @@
                     </div>
                 </td>
                 <td>
+                    @if(user.Id != Model.UserId) {
                     <a href="#" data-toggle="modal" data-target="#popup" onclick="deleteUser(@user.Id, '@user.Name');">
                         <span aria-hidden="true" class="glyphicon-remove-circle glyphicon"></span>
                     </a>
+                    }
+                    else {
+                        <span aria-hidden="true" class="glyphicon-remove-circle glyphicon btn-link no-underline"></span>
+                    }
                 </td>
             </tr>
         }

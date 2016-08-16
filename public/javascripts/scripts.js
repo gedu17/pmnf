@@ -14,6 +14,12 @@ function setSuccess(errid, succid, msg) {
     $("#" + succid).html(msg);
 }
 
+function setHide(id) {
+     if(!$("#" + id).hasClass("hide")) {
+        $("#" + id).addClass("hide");
+    }
+}
+
 function sendQuery(url, data, method, callback) {
     $.ajax({
         url: url,
@@ -24,6 +30,10 @@ function sendQuery(url, data, method, callback) {
     }).complete(function(xhr, textStatus) {
         callback(xhr);
     });
+}
+
+function clearForm(id) {
+    document.getElementById(id).reset();
 }
 
 function createUser() {
@@ -41,7 +51,11 @@ function createUser() {
         var cb = function(xhr) {
             if(xhr.status == 200) {
                 updateManageUsers("createUserError", "createUserSuccess");
-                setTimeout(function() {setSuccess("createUserError","createUserSuccess", "User created.")}, 100);
+                setTimeout(function() {
+                    setSuccess("createUserError","createUserSuccess", "User created.");
+                    clearForm("createUserForm");
+                }, 500);
+                
             }
             else {
                 setError("createUserError","createUserSuccess", "Username already exists.");
@@ -49,6 +63,8 @@ function createUser() {
         };
 
         var data = {name: name, password: password, level: level};
+        setHide("createUserError");
+        setHide("createUserSuccess");
         sendQuery("/account/create", data, "POST", cb);
     }
 }
@@ -60,7 +76,7 @@ function deleteUser(id, name) {
     var cb = function(xhr) {
         if(xhr.status) {
             updateManageUsers("manageUsersError", "manageUsersSuccess");
-            setTimeout(function() {setSuccess("manageUsersError", "manageUsersSuccess", "User " + name + " successfully removed.")}, 100);
+            setTimeout(function() {setSuccess("manageUsersError", "manageUsersSuccess", "User " + name + " successfully removed.")}, 500);
         }
         else {
             setError("manageUsersError", "manageUsersSuccess", "Failed to remove " + name + ". Bad permissions.")
@@ -103,7 +119,6 @@ function setAdmin(id, value) {
 function setActive(id, value) {
     var cb = function(xhr) {
         if(xhr.status === 200) {
-            console.log("value = " + parseInt(value));
             if(parseInt(value) === 0) {
                 $("#" + id + "_active").addClass("hide");
                 $("#" + id + "_inactive").removeClass("hide");
@@ -133,6 +148,8 @@ function updateAdminSettings() {
             setError("adminSettingsError", "adminSettingsSuccess", "Error updating admin settings.");
         }
     };
+    setHide("adminSettingsError");
+    setHide("adminSettingsSuccess");
     sendQuery("/account/adminsettings", data, "POST", cb);
 }
 
@@ -153,6 +170,8 @@ function updateUserPaths() {
             setError("userPathsError", "userPathsSuccess", "Failed to update user paths.");
         }
     }
+    setHide("userPathsError");
+    setHide("userPathsSuccess");
     sendQuery("/account/userpaths", data, "POST", cb);
 }
 
@@ -160,17 +179,20 @@ function changePassword() {
     if($("#newPassword").val() === $("#newPasswordConfirmation").val()) {
         var cb = function(xhr) {
             if(xhr.status === 200) {
-                setSuccess("passwordError", "passwordSuccess", "Password successfully changed.");
+                setSuccess("passwordChangeError", "passwordChangeSuccess", "Password successfully changed.");
+                clearForm("passwordChangeForm");
             }
             else {
-                setError("passwordError", "passwordSuccess", "Old password is incorrect.");
+                setError("passwordChangeError", "passwordChangeSuccess", "Old password is incorrect.");
             }
         };
         var data = {OldPassword: $("#oldPassword").val(), NewPassword: $("#newPassword").val()};
+        setHide("passwordChangeError");
+        setHide("passwordChangeSuccess");
         sendQuery("/account/password", data, "POST", cb);
     }
     else {
-        setError("passwordError", "passwordSuccess", "Passwords do not match.");
+        setError("passwordChangeError", "passwordChangeSuccess", "Passwords do not match.");
     }
 }
 
@@ -267,8 +289,19 @@ function initModalForMove(id) {
 }
 
 $( document ).ready(function() {
+    var currentTab = "passwordChange";
     $('#settingsTabs a').click(function(e) {
         e.preventDefault();
         $(this).tab('show');
+        
+        var item = this.toString();
+        var hashtag = item.indexOf("#");
+        var tab = item.substring(hashtag+1);
+        if(currentTab != null) {
+            setHide(tab + "Success");
+            setHide(tab + "Error");
+        }
+
+        currentTab = tab;
     });
 });

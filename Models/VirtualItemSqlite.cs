@@ -1,4 +1,3 @@
-
 using System;
 using VidsNet.Enums;
 using VidsNet.DataModels;
@@ -15,6 +14,6 @@ namespace VidsNet.Models
         public override bool IsDeleted {get;set;}
         public override DateTime DeletedTime {get;set;}
         public override DateTime ViewedTime {get;set;}
-        public override ItemType Type {get;set;}
+        public override Item Type {get;set;}
     }
 }

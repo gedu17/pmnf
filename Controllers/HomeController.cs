@@ -9,9 +9,12 @@ using System.Threading.Tasks;
 using VidsNet.ViewModels;
 using VidsNet.DataModels;
 using System;
+using VidsNet.Classes;
+using VidsNet.Filters;
 
 namespace VidsNet.Controllers
 {
+    [TypeFilter(typeof(ExceptionFilter))]
     [Authorize]
     public class HomeController : BaseController
     {
@@ -28,10 +31,18 @@ namespace VidsNet.Controllers
         
         public IActionResult Index()
         {
-            var data =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
-            var data2 = _db.RealItems.ToList();
-            var model = new HomeViewModel(_user) {Data = data, Data2 = data2 };
-            return View(model);
+            if(Constants.IsSqlite) {
+                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+                var realItems = _db.RealItems.ToList();
+                var model = new HomeViewModel(_user) {VirtualItems = virtualItems, RealItems = realItems };
+                return View(model);
+            }
+            else {
+                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+                var model = new HomeViewModel(_user) {VirtualItems = virtualItems};
+                return View(model);
+            }
+            
         }
 
         [Route("scan")]
@@ -40,6 +51,19 @@ namespace VidsNet.Controllers
             var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList());            
             var model = new ScanViewModel(_user) {Data = set};
             return View(model);
+        }
+
+        [Route("physical")]
+        public IActionResult Physical() {
+            var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+            var paths = _user.UserSettings.Where(x => x.Name == "path").ToDictionary(y => y.Id, y => y.Value);
+            var model = new PhysicalViewModel(_user) {VirtualItems = virtualItems, RealItems = _db.RealItems.ToList(), Paths = paths};
+            return View("Physical", model);
+        }
+
+        [Route("error")]
+        public IActionResult Error() {
+            return Ok("Error occured!");
         }
     }
 }

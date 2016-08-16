@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace VidsNet.Enums
 {
-    public class VideoType {
+    public class Video {
 
         private List<string> _types {get;set;}
         private Dictionary<string, string> _mimes {get;set;}
 
-        public VideoType() {
+        public Video() {
             _types = new List<string>();
             _types.Add(".avi");
             _types.Add(".m4v");

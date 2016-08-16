@@ -7,8 +7,9 @@ using VidsNet.ViewModels;
 using VidsNet.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using VidsNet.DataModels;
 
-namespace VidsNet.DataModels
+namespace VidsNet.Classes
 {
     public class UserData {
         public int Id {get; private set;}
@@ -41,7 +42,7 @@ namespace VidsNet.DataModels
             if(IsAdmin) {
                 var setting = _db.Settings.Where(x => x.Id == item.Id).FirstOrDefault();
                 if(setting is Setting) {
-                    setting.Value = item.Value;
+                    setting.Value = item.Value.Trim();
                     _db.Settings.Update(setting);
                     await _db.SaveChangesAsync();
                 }
@@ -66,7 +67,6 @@ namespace VidsNet.DataModels
                 var virtualItems = new List<BaseVirtualItem>();
                 realItems.ForEach(y => {
                     var virtualItem = _db.VirtualItems.Where(z => z.RealItemId == y.Id).FirstOrDefault();
-                    //TODO: check if bugged!
                     if(virtualItem is BaseVirtualItem) {
                         virtualItems.Add(virtualItem);
                     }

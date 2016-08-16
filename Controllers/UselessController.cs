@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using VidsNet.Classes;
 using VidsNet.DataModels;
-using VidsNet.Models;
+using VidsNet.Filters;
 
 namespace VidsNet.Controllers
 {
     [Authorize]
+    [TypeFilter(typeof(ExceptionFilter))]
     public class SettingsController : BaseController
     {
         private ILogger _logger;

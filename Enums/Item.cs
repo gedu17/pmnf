@@ -1,7 +1,7 @@
 
 namespace VidsNet.Enums
 {
-    public enum ItemType {
+    public enum Item {
         None = -1,
         Folder,
         Video,

@@ -11,17 +11,19 @@ using VidsNet.Models;
 using VidsNet.Enums;
 using VidsNet.Classes;
 using VidsNet.Interfaces;
+using VidsNet.Filters;
 
 namespace VidsNet.Controllers
 {
     [Authorize]
+    [TypeFilter(typeof(ExceptionFilter))]
     public class ItemController : BaseController
     {
         private ILogger _logger;
         private BaseDatabaseContext _db;
         private VideoViewer _viewer;
-        private IUserRepository _userRepository;
-        public ItemController(ILoggerFactory logger, BaseDatabaseContext db, UserData userData, VideoViewer viewer, IUserRepository userRepository)
+        private BaseUserRepository _userRepository;
+        public ItemController(ILoggerFactory logger, BaseDatabaseContext db, UserData userData, VideoViewer viewer, BaseUserRepository userRepository)
          : base(userData) {
             _logger = logger.CreateLogger("ItemsController");
             _db = db;            
@@ -36,21 +38,38 @@ namespace VidsNet.Controllers
                 "Parent": 0
             }
             */
+            if(Constants.IsSqlite) {
+                var item = new VirtualItemSqlite()
+                {
+                    UserId = _user.Id,
+                    RealItemId = 0,
+                    ParentId = frontEndItem.Parent,
+                    Name = frontEndItem.Name.Trim(),
+                    IsViewed = false,
+                    IsDeleted = false,
+                    Type = Item.Folder
+                };
 
-            //TODO: differenciate between sqlite and nonsqlite!
-            var item = new VirtualItem()
-            {
-                UserId = _user.Id,
-                RealItemId = 0,
-                ParentId = frontEndItem.Parent,
-                Name = frontEndItem.Name,
-                IsViewed = false,
-                IsDeleted = false,
-                Type = ItemType.Folder
-            };
+                _db.VirtualItems.Add(item);
+                await _db.SaveChangesAsync();
+            }
+            else {
+                var item = new VirtualItem()
+                {
+                    UserId = _user.Id,
+                    RealItemId = 0,
+                    ParentId = frontEndItem.Parent,
+                    Name = frontEndItem.Name.Trim(),
+                    IsViewed = false,
+                    IsDeleted = false,
+                    Type = Item.Folder
+                };
+                _db.VirtualItems.Add(item);
+                await _db.SaveChangesAsync();
 
-            _db.VirtualItems.Add(item);
-            await _db.SaveChangesAsync();
+            }
+
+            
             return Ok();
         }
         
@@ -60,9 +79,8 @@ namespace VidsNet.Controllers
                 "name": "newName"
             }*/
             var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).SingleOrDefault();
-            //TODO: check if bugged!
             if(item is BaseVirtualItem) {
-                item.Name = frontEndItem.Name;
+                item.Name = frontEndItem.Name.Trim();
                 _db.VirtualItems.Update(item);
                 await _db.SaveChangesAsync();
                 return Ok();
@@ -74,7 +92,6 @@ namespace VidsNet.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(int id) {
             var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted == false).SingleOrDefault();
-            //TODO: check if bugged!
             if(item is BaseVirtualItem) {
                 item.DeletedTime = DateTime.Now;
                 item.IsDeleted = true;
@@ -89,7 +106,6 @@ namespace VidsNet.Controllers
         [HttpPut]
         public async Task<IActionResult> Viewed(int id) {
             var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsViewed == false).SingleOrDefault();
-            //TODO: check if bugged!
             if(item is BaseVirtualItem) {
                 item.ViewedTime = DateTime.Now;
                 item.IsViewed = true;
@@ -104,11 +120,11 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         [HttpGet]
         [Route("item/view/{session}/{id}/{name}")]
-        public IActionResult View(Guid session, int id, string name) {
+        public async Task<IActionResult> View(Guid session, int id, string name) {
             if(ModelState.IsValid) {
                 var user = _userRepository.GetUserBySessionHash(session.ToString());
                 if(user is User) {
-                    var result = _viewer.View(id, user.Id, name, Request.Headers["Range"].FirstOrDefault());
+                    var result = await _viewer.View(id, user.Id, name, Request.Headers["Range"].FirstOrDefault());
 
                     if(!string.IsNullOrWhiteSpace(result.ContentRange)) {
                         Response.Headers.Add("Content-Range", result.ContentRange);

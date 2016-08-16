@@ -5,24 +5,25 @@ using VidsNet.Models;
 
 namespace VidsNet.ViewModels
 {
-    public class HomeViewModel : BaseViewModel
+    public class PhysicalViewModel : BaseViewModel
     {
 
-        public HomeViewModel(UserData userData) : base(userData) {
+        public PhysicalViewModel(UserData userData) : base(userData) {
             VirtualItems = new List<BaseVirtualItem>();
             RealItems = new List<RealItem>();
+            Paths = new Dictionary<int,string>();
         }
 
         public override string ActiveMenuItem
         {
             get
             {
-                return "Virtual view";
+                return "Physical view";
             }
         }
 
         public List<BaseVirtualItem> VirtualItems {get;set;}
+        public Dictionary<int, string> Paths {get;set;} 
         public List<RealItem> RealItems {get;set;}
-        public object Data {get;set;}
     }
 }

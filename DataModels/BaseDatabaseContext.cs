@@ -9,5 +9,9 @@ namespace VidsNet.DataModels
         public DbSet<SystemMessage> SystemMessages {get;set;}
         public DbSet<UserSetting> UserSettings {get;set;}
         public DbSet<BaseVirtualItem> VirtualItems {get;set;}
+
+        public BaseDatabaseContext() {
+            base.Database.EnsureCreated();
+        }
     }
 }

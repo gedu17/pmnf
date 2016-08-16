@@ -7,108 +7,42 @@
 @using System.IO;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-    var items = (List<BaseVirtualItem>)@Model.Data;
+    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
     int parentItemCount = items.AsQueryable().Where(x => x.ParentId == 0).Count();
 }
 
 @functions {   
-    string GetFolderDiv(BaseVirtualItem item, int padding, int childCount) {
-        var div = new TagBuilder("div");
-        div.AddCssClass("list-group-item");
-        div.MergeAttribute("style", string.Format("padding-left: {0}px", padding));
-
-        var button = new TagBuilder("button");
-        button.AddCssClass("btn");
-        button.AddCssClass("btn-link");
-        button.MergeAttribute("data-toggle", "collapse");
-        button.MergeAttribute("data-target", string.Format("#{0}", item.Id));
-        button.MergeAttribute("type", "button");
-
-        var nameSpan = new TagBuilder("span");
-        nameSpan.InnerHtml.Append(item.Name);
-        nameSpan.MergeAttribute("id", string.Format("{0}_name", item.Id));
-        nameSpan.MergeAttribute("style", "margin-left: 15px;");
-
-        var buttonSpan = new TagBuilder("span");
-        buttonSpan.AddCssClass("glyphicon");
-        buttonSpan.AddCssClass("glyphicon-folder-close");
-        buttonSpan.MergeAttribute("aria-hidden", "true");
-        buttonSpan.InnerHtml.AppendHtml(nameSpan);
-
-        
-
-        var countSpan = new TagBuilder("span");
-        countSpan.AddCssClass("label");
-        countSpan.AddCssClass("label-default");
-        countSpan.AddCssClass("label-pill");
-        countSpan.AddCssClass("pull-xs-right");
-        countSpan.InnerHtml.Append(childCount.ToString());
-
-
-        button.InnerHtml.AppendHtml(buttonSpan);
-        div.InnerHtml.AppendHtml(button);
-        div.InnerHtml.AppendHtml(countSpan);
-
-        return HtmlHelpers.TagToString(div);
-    }
-
-    string GetItemDiv(BaseVirtualItem item, int padding, UrlRouteContext urlContext) {
-        var div = new TagBuilder("div");
-        div.AddCssClass("list-group-item");
-        
-        var nameSpan = new TagBuilder("span");
-        nameSpan.InnerHtml.Append(item.Name);
-        nameSpan.MergeAttribute("id", string.Format("{0}_name", item.Id));
-
-        var nameLink = new TagBuilder("a");
-        nameLink.MergeAttribute("href", Url.RouteUrl(urlContext));
-        nameLink.MergeAttribute("style", "margin-left: 15px;");
-        nameLink.InnerHtml.AppendHtml(nameSpan);
-
-        var iconSpan = new TagBuilder("span");
-        iconSpan.AddCssClass("glyphicon");
-        iconSpan.AddCssClass("glyphicon-film");
-        iconSpan.MergeAttribute("aria-hidden", "true");
-        iconSpan.MergeAttribute("style", string.Format("padding-left: {0}px", padding));
-        iconSpan.InnerHtml.AppendHtml(nameLink);
-
-        div.InnerHtml.AppendHtml(iconSpan);
-
-        return HtmlHelpers.TagToString(div);
-    }
-
     string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems, int parent, int level) {
-        string ret = string.Empty;
+        var ret = new TagBuilder("div");
         int padding = level * 25;
         List<BaseVirtualItem> it = items.Where(x => x.ParentId == parent).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
         foreach(var item in it) {
-            
-            if(item.Type == ItemType.Folder) {
-                
-                ret += GetFolderDiv(item, padding, items.Where(x => x.ParentId == item.Id).Count());
-                ret += PrintListing(items, realItems, item.Id, level + 1);
+            if(item.Type == Item.Folder) {
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewFolder(item, padding, items.Where(x => x.ParentId == item.Id).Count()));
+                ret.InnerHtml.AppendHtml(PrintListing(items, realItems, item.Id, level + 1));
             }
             else {
-                var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
-                var urlContext = new UrlRouteContext() {
-                    RouteName = "ItemView",
-                    Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)}
-                };
-                //ret += "<a href=\"" + Url.RouteUrl(context) + "\">"+item.Name+"</a>";
-                ret += GetItemDiv(item, padding, urlContext);
-                
+                var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
+                if(VidsNet.Constants.IsSqlite) {
+                    var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
+                    urlContext.Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)};
+                }
+                else {
+                    var tmp = (VirtualItem)item;
+                    urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
+                }
+
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext)));
             }
         }
         //glyphicon glyphicon-menu-hamburger for options
-        //TODO: rewrite to something smarter (HINT: Separate function)
         if(parent != 0) {
-            var ret2 = string.Format("<div id=\"{0}\" class=\"collapse\">", parent);
-            ret2 += ret;
-            ret2 += "</div>";
-            return ret2;
+            var wrapper = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
+            { "id", parent.ToString() } }, ret);
+            return HtmlHelpers.TagToString(wrapper);
         }
 
-        return ret;
+        return HtmlHelpers.TagToString(ret);
     }
 }
 <div class="list-group">
@@ -118,5 +52,6 @@
         </span>
         <span class="pull-xs-right label-pill label-default label">@parentItemCount</span>
     </div>
-    @Html.Raw(@PrintListing(@Model.Data, @Model.Data2, 0, 1))
+
+    @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
 </div>

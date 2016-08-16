@@ -1,3 +1,4 @@
+@using VidsNet.DataModels;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
 }
@@ -5,13 +6,13 @@
 @{
     <p>New items:</p>
     <p>
-    @foreach(VidsNet.DataModels.Item item in (List<VidsNet.DataModels.Item>)@Model.Data.NewItems) {
+    @foreach(ScanItem item in (List<ScanItem>)@Model.Data.NewItems) {
         <div>@item.Id. @item.Path // @item.Type</div><br />
     }
     </p>
     <p>&nbsp;</p>
     <p>Deleted items:</p>
-    @foreach(VidsNet.DataModels.Item item in (List<VidsNet.DataModels.Item>)@Model.Data.DeletedItems) {
+    @foreach(ScanItem item in (List<ScanItem>)@Model.Data.DeletedItems) {
         <div>@item.Id. @item.Path // @item.Type</div><br />
     }
 }

@@ -1,6 +1,6 @@
 namespace VidsNet.Enums
 {
-    public enum DatabaseType {
+    public enum Database {
         Sqlite,
         Mysql,
         SqlServer

@@ -9,8 +9,6 @@ using Microsoft.Extensions.Logging;
 using VidsNet.Scanners;
 using VidsNet.DataModels;
 using VidsNet.Enums;
-using VidsNet.Interfaces;
-using VidsNet.Models;
 using VidsNet.Classes;
 
 namespace VidsNet
@@ -45,26 +43,16 @@ namespace VidsNet
                 });
             });
 
-            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
-
-            
-            //TODO: configure if needed
-            //services.AddCors();
-            //TODO: configure if needed
-            //services.AddDataProtection();
-            
-            
+            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");          
             services.AddMvc();
 
-            services.AddScoped<IUserRepository, UserRepository>();
-
-            
+            services.AddScoped<BaseUserRepository, UserRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddTransient<BaseScanner, BaseScanner>();
             services.AddTransient<Scanner, Scanner>();
-            services.AddTransient<VideoType, VideoType>();
-            services.AddTransient<SubtitleType, SubtitleType>();
+            services.AddTransient<Video, Video>();
+            services.AddTransient<Subtitle, Subtitle>();
             services.AddTransient<UserData, UserData>();
             services.AddTransient<VideoViewer, VideoViewer>();
         }
@@ -100,6 +88,8 @@ namespace VidsNet
                 //defaults: new { controller = "Item", action = "View" });
                 
             });
+
+            app.UseExceptionHandler("/error");
         }
     }
 }

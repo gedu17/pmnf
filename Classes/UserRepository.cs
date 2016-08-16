@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 
 namespace VidsNet.Classes
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : BaseUserRepository
     {
         private List<User> _users;
         private BaseDatabaseContext _db;
@@ -24,7 +24,7 @@ namespace VidsNet.Classes
             _users.AddRange(_db.Users.ToList());
         }
 
-        public bool ValidateLogin(string username, string password)
+        public override bool ValidateLogin(string username, string password)
         {
             username = username.ToLower().Trim();
             password = password.Trim();
@@ -42,7 +42,7 @@ namespace VidsNet.Classes
             }
         }
 
-        public async Task<bool> ChangePassword(int userId, string password) {
+        public override async Task<bool> ChangePassword(int userId, string password) {
             var user = _db.Users.Where(x => x.Id == userId).First();
             if(user is User) {
                 user.Password = Convert.ToBase64String(CreatePasswordHash(password));
@@ -53,11 +53,11 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public List<User> GetUsers() {
+        public override List<User> GetUsers() {
             return _db.Users.ToList();
         }
 
-        public ClaimsPrincipal Get(string userName)
+        public override ClaimsPrincipal Get(string userName)
         {
             var user = _users.FirstOrDefault(x => x.Name == userName);
 
@@ -71,7 +71,6 @@ namespace VidsNet.Classes
             _db.Users.Update(user);
             _db.SaveChanges();
 
-            //TODO: remove claims and leave only user/admin ?
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(Claims.Id.ToString(), user.Id.ToString(), ClaimValueTypes.String, Constants.Issuer));
             claims.Add(new Claim(Claims.Level.ToString(), user.Level.ToString(), ClaimValueTypes.String, Constants.Issuer));
@@ -87,7 +86,7 @@ namespace VidsNet.Classes
 
         }
 
-        public async Task<bool> SetActive(int userId, int value)
+        public override async Task<bool> SetActive(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
             if(user is User) {
@@ -99,7 +98,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public async Task<bool> SetAdmin(int userId, int value)
+        public override async Task<bool> SetAdmin(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
             if(user is User) {
@@ -111,7 +110,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public async Task<bool> CreateUser(NewUserViewModel user)
+        public override async Task<bool> CreateUser(NewUserViewModel user)
         {
             user.Name = user.Name.ToLower().Trim();
             if(!_db.Users.Any(x => x.Name.ToLower() == user.Name) && !string.IsNullOrWhiteSpace(user.Name) 
@@ -125,7 +124,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public async Task<bool> DeleteUser(int id) {
+        public override async Task<bool> DeleteUser(int id) {
             var user = _db.Users.Where(x => x.Id == id).FirstOrDefault();
             if(user is User) {
                 var userPaths = _db.UserSettings.Where(x => x.UserId == id && x.Name == "path").ToList();
@@ -151,7 +150,7 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public byte[] GetSaltFromHashedPassword(byte[] password)
+        public override byte[] GetSaltFromHashedPassword(byte[] password)
         {;
             var salt = new byte[Constants.SaltSize];
             Buffer.BlockCopy(password, 0, salt, 0, Constants.SaltSize);
@@ -159,7 +158,7 @@ namespace VidsNet.Classes
             return salt;
         }
 
-        public byte[] GetPasswordFromHashedPassword(byte[] password)
+        public override byte[] GetPasswordFromHashedPassword(byte[] password)
         {
 
             var hash = new byte[Constants.PasswordSize];
@@ -168,7 +167,7 @@ namespace VidsNet.Classes
             return hash;
         }
 
-        public byte[] CreatePasswordHash(string password)
+        public override byte[] CreatePasswordHash(string password)
         {
             var salt = GetSalt();
             var hash = KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA512, Constants.KeyDerivationIterationCount,
@@ -178,13 +177,13 @@ namespace VidsNet.Classes
             Buffer.BlockCopy(hash, 0, ret, salt.Length, hash.Length);
             return ret;
         }
-        public byte[] GetPasswordHash(string password, byte[] salt)
+        public override byte[] GetPasswordHash(string password, byte[] salt)
         {
             return KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA512, Constants.KeyDerivationIterationCount,
              Constants.PasswordSize);
         }
 
-        public byte[] GetSalt() {
+        public override byte[] GetSalt() {
             var salt = new byte [Constants.SaltSize];
             using(var rng = RandomNumberGenerator.Create())
             {
@@ -193,28 +192,8 @@ namespace VidsNet.Classes
 
             return salt;
         }
-        
-        //TODO: NOT IN INTERFACE
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static bool PasswordsEqual(byte[] a, byte[] b)
-        {
-            if (a == null && b == null)
-            {
-                return true;
-            }
-            if (a == null || b == null || a.Length != b.Length)
-            {
-                return false;
-            }
-            var areSame = true;
-            for (var i = 0; i < a.Length; i++)
-            {
-                areSame &= (a[i] == b[i]);
-            }
-            return areSame;
-        }
 
-        public User GetUserBySessionHash(string hash)
+        public override User GetUserBySessionHash(string hash)
         {
             return _users.Where(x => x.SessionHash == hash).FirstOrDefault();
         }

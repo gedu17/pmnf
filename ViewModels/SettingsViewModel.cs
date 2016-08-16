@@ -1,8 +1,8 @@
 
 using System.Collections.Generic;
 using VidsNet.Models;
-using VidsNet.DataModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using VidsNet.Classes;
 
 namespace VidsNet.ViewModels
 {

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,8 +11,10 @@ using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using VidsNet.Classes;
 using VidsNet.DataModels;
 using VidsNet.Enums;
+using VidsNet.Filters;
 using VidsNet.Interfaces;
 using VidsNet.Models;
 using VidsNet.Scanners;
@@ -19,14 +22,15 @@ using VidsNet.ViewModels;
 
 namespace VidsNet.Controllers
 {
+    [TypeFilter(typeof(ExceptionFilter))]
     [Authorize]
     public class AccountController : BaseController
     {
-        private IUserRepository _userRepository;
+        private BaseUserRepository _userRepository;
         private readonly ILogger _logger;
         private BaseScanner _baseScanner;
         private Scanner _scanner;
-        public AccountController(IUserRepository userRepository, ILoggerFactory loggerFactory, UserData userData, BaseScanner baseScanner, Scanner scanner) 
+        public AccountController(BaseUserRepository userRepository, ILoggerFactory loggerFactory, UserData userData, BaseScanner baseScanner, Scanner scanner) 
          : base(userData)
         {
             _userRepository = userRepository;
@@ -77,92 +81,24 @@ namespace VidsNet.Controllers
             }
             return View(new LoginViewModel(_user){ ErrorMessage = "Unknown error."});
         }
-        //TODO: MOVE TO CSHTML
-        private void Helper(Item item, TagBuilder select, int level, List<UserSetting> userPaths) {
-            var padding = level * 25;
-            foreach (var child in item.Children)
-            {
-                var pathValue = string.Format("{0}{1}", child.Path, Path.DirectorySeparatorChar);
-                var guid = Guid.NewGuid().ToString();
-                var div = new TagBuilder("div");
-                div.AddCssClass("list-group-item");
-                div.MergeAttribute("style", string.Format("padding-left: {0}px", padding));
-
-                var checkbox = new TagBuilder("input");
-                checkbox.MergeAttribute("type", "checkbox");
-                checkbox.MergeAttribute("name", child.Path);
-                checkbox.MergeAttribute("value", pathValue);
-                checkbox.MergeAttribute("id", child.Id.ToString());
-
-                if(userPaths.Any(x => x.Value == pathValue)) {
-                    checkbox.MergeAttribute("checked", "checked");
-                }
-
-
-                div.InnerHtml.AppendHtml(checkbox);
-
-                if(child.Children.Count > 0) {
-                    var button = new TagBuilder("button");
-                    button.AddCssClass("btn");
-                    button.AddCssClass("btn-link");
-                    button.MergeAttribute("data-toggle", "collapse");
-                    
-                    button.MergeAttribute("data-target", string.Format("#{0}", guid));
-                    button.MergeAttribute("type", "button");
-
-                    var nameSpan = new TagBuilder("span");
-                    nameSpan.InnerHtml.Append(child.Path);
-                    nameSpan.MergeAttribute("id", string.Format("{0}_name", guid));
-                    nameSpan.MergeAttribute("style", "margin-left: 15px;");
-
-                    var buttonSpan = new TagBuilder("span");
-                    buttonSpan.AddCssClass("glyphicon");
-                    buttonSpan.AddCssClass("glyphicon-folder-open");
-                    buttonSpan.MergeAttribute("aria-hidden", "true");
-                    buttonSpan.InnerHtml.AppendHtml(nameSpan);
-
-                    button.InnerHtml.AppendHtml(buttonSpan);
-                    div.InnerHtml.AppendHtml(button);
-                }
-                else {
-                    var nameSpan = new TagBuilder("span");
-                    nameSpan.InnerHtml.Append(child.Path);
-                    nameSpan.MergeAttribute("id", string.Format("{0}_name", guid));
-                    nameSpan.MergeAttribute("style", "margin-left: 15px;");
-
-                    var buttonSpan = new TagBuilder("span");
-                    buttonSpan.AddCssClass("glyphicon");
-                    buttonSpan.AddCssClass("glyphicon-folder-close");
-                    buttonSpan.MergeAttribute("aria-hidden", "true");
-                    buttonSpan.MergeAttribute("style", "padding: 6px 12px");
-                    buttonSpan.InnerHtml.AppendHtml(nameSpan);
-                    div.InnerHtml.AppendHtml(buttonSpan);
-                }
-
-                select.InnerHtml.AppendHtml(div);
-
-                var collapsedDiv = new TagBuilder("div");
-                collapsedDiv.MergeAttribute("id", guid);
-                collapsedDiv.AddCssClass("collapse");
-                
-
-                if(child.Type == ItemType.Folder) {
-                    Helper(child, collapsedDiv, level + 1, userPaths);
-                }
-                select.InnerHtml.AppendHtml(collapsedDiv);
-            }
-        }
 
         [HttpGet]
         public IActionResult Settings() {
-            var home = Environment.GetEnvironmentVariable("HOME");
-            var folders = _baseScanner.ScanItems(new List<string>() { home }, new List<IScannerCondition>());
+            var homeDir = string.Empty;
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                homeDir = Environment.GetEnvironmentVariable("HOMEPATH");
+            }
+            else {
+                homeDir = Environment.GetEnvironmentVariable("HOME");
+            }
+
+            var folders = _baseScanner.ScanItems(new List<string>() { homeDir }, new List<IScannerCondition>());
             var userPaths = _user.UserSettings.Where(x => x.Name == "path").ToList();
             var form = new TagBuilder("form");
             form.MergeAttribute("id", "userPathsForm");
 
             foreach(var folder in folders) {
-                Helper(folder, form, 1, userPaths);
+                HtmlHelpers.GenerateDirectoryListing(folder, form, 1, userPaths);
             }
             var settings = new SettingsViewModel(_user) { 
                 IsAdmin = _user.IsAdmin, 
@@ -194,7 +130,6 @@ namespace VidsNet.Controllers
         public async Task<IActionResult> AdminSettings([FromBody]List<SettingsPostViewModel> adminSettings) {
             if (ModelState.IsValid)
             {
-                //TODO: REWORK TO PASS THE LIST TO METHOD?
                 foreach(var item in adminSettings) {
                     await _user.UpdateAdminSetting(item);
                 }
@@ -232,7 +167,6 @@ namespace VidsNet.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody]NewUserViewModel user) {
             if(ModelState.IsValid) {
-                _logger.LogInformation("Username: " + user.Name + ", Password: " + user.Password + ", Level: " + user.Level);
                 if(_user.IsAdmin) {
                     if(await _userRepository.CreateUser(user)){
                         return Ok();

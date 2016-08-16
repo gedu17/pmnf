@@ -13,6 +13,6 @@ namespace VidsNet.DataModels
         public abstract bool IsDeleted {get;set;}
         public abstract DateTime DeletedTime {get;set;}
         public abstract DateTime ViewedTime {get;set;}
-        public abstract ItemType Type {get;set;}
+        public abstract Item Type {get;set;}
     }
 }

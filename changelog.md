@@ -1,5 +1,21 @@
 #VidsNET
 
+##1.9.0
+###Back-End
+- [x] Trim front-end input
+- [x] Fix naming
+- [x] Add exception handlers
+- [x] Change IUserRepository interface to abstract class
+- [x] Fix returning incorrect subtitle if more than one subtitle file found in the directory
+- [x] Add support for cross-platform home directory scan
+- [x] Fix foreign key support for other dbms
+
+###Front-End
+- [x] Reset user forms in settings after submit
+- [x] Clean notifications from tabs when switching tabs
+- [x] Disable links on folders that do not have children
+- [x] Implement Physical view
+
 ##1.8.0
 ###Back-End
 - [x] Convert username to lowercase and trim whitespaces when entered
