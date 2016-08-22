@@ -1,5 +1,24 @@
 #VidsNET
 
+##2.0.0
+###Back-End
+- [x] Fix not checking for deleted and viewed flags in virtual view 
+- [x] Add Template controller to return templates for front-side modal actions
+- [x] Fix new virtual folder creation not creating real item
+- [x] Add VirtualFolder value to Item enum 
+- [x] Add ability to unset viewed and deleted flags
+- [x] Add enum for viewtypes
+- [x] Add ModelState validation check in ItemController
+
+###Front-End
+- [x] Add actions for items 
+- [x] Fix padding for actions button
+- [x] Add create folder action
+- [x] Fix child items not being removed when item is viewed or deleted
+- [x] Add different lists for default, viewed and deleted
+- [x] Add separate popover actions for different lists
+- [x] Refactor scripts.js to multiple files
+
 ##1.9.0
 ###Back-End
 - [x] Trim front-end input

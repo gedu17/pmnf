@@ -38,37 +38,49 @@ namespace VidsNet.Controllers
                 "Parent": 0
             }
             */
-            if(Constants.IsSqlite) {
-                var item = new VirtualItemSqlite()
-                {
-                    UserId = _user.Id,
-                    RealItemId = 0,
-                    ParentId = frontEndItem.Parent,
-                    Name = frontEndItem.Name.Trim(),
-                    IsViewed = false,
-                    IsDeleted = false,
-                    Type = Item.Folder
-                };
+            if(ModelState.IsValid) {
+                if(Constants.IsSqlite) {
+                    var item = new VirtualItemSqlite()
+                    {
+                        UserId = _user.Id,
+                        RealItemId = 0,
+                        ParentId = frontEndItem.Parent,
+                        Name = frontEndItem.Name.Trim(),
+                        IsViewed = false,
+                        IsDeleted = false,
+                        Type = Item.Folder
+                    };
 
-                _db.VirtualItems.Add(item);
-                await _db.SaveChangesAsync();
+                    _db.VirtualItems.Add(item);
+                    await _db.SaveChangesAsync();
+                }
+                else {
+                    var virtualFolder = new RealItem() {
+                        Name = frontEndItem.Name.Trim(),
+                        ParentId = frontEndItem.Parent,
+                        Path = "/",
+                        Type = Item.VirtualFolder,
+                        UserPathId = 0,
+                        Extension = ""
+                    };
+
+                    _db.RealItems.Add(virtualFolder);
+
+                    var item = new VirtualItem()
+                    {
+                        UserId = _user.Id,
+                        RealItemId = virtualFolder.Id,
+                        ParentId = frontEndItem.Parent,
+                        Name = frontEndItem.Name.Trim(),
+                        IsViewed = false,
+                        IsDeleted = false,
+                        Type = Item.Folder
+                    };
+                    _db.VirtualItems.Add(item);
+                    await _db.SaveChangesAsync();
+
+                }
             }
-            else {
-                var item = new VirtualItem()
-                {
-                    UserId = _user.Id,
-                    RealItemId = 0,
-                    ParentId = frontEndItem.Parent,
-                    Name = frontEndItem.Name.Trim(),
-                    IsViewed = false,
-                    IsDeleted = false,
-                    Type = Item.Folder
-                };
-                _db.VirtualItems.Add(item);
-                await _db.SaveChangesAsync();
-
-            }
-
             
             return Ok();
         }
@@ -78,12 +90,14 @@ namespace VidsNet.Controllers
             /* {
                 "name": "newName"
             }*/
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).SingleOrDefault();
-            if(item is BaseVirtualItem) {
-                item.Name = frontEndItem.Name.Trim();
-                _db.VirtualItems.Update(item);
-                await _db.SaveChangesAsync();
-                return Ok();
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.Name = frontEndItem.Name.Trim();
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
             }
             
             return NotFound();
@@ -91,13 +105,31 @@ namespace VidsNet.Controllers
 
         [HttpDelete]
         public async Task<IActionResult> Delete(int id) {
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted == false).SingleOrDefault();
-            if(item is BaseVirtualItem) {
-                item.DeletedTime = DateTime.Now;
-                item.IsDeleted = true;
-                _db.VirtualItems.Update(item);
-                await _db.SaveChangesAsync();
-                return Ok();
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && !x.IsDeleted).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.DeletedTime = DateTime.Now;
+                    item.IsDeleted = true;
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
+            }
+            
+            return NotFound();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UnDelete(int id) {
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.DeletedTime = DateTime.Now;
+                    item.IsDeleted = false;
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
             }
             
             return NotFound();
@@ -105,15 +137,48 @@ namespace VidsNet.Controllers
 
         [HttpPut]
         public async Task<IActionResult> Viewed(int id) {
-            var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsViewed == false).SingleOrDefault();
-            if(item is BaseVirtualItem) {
-                item.ViewedTime = DateTime.Now;
-                item.IsViewed = true;
-                _db.VirtualItems.Update(item);
-                await _db.SaveChangesAsync();
-                return Ok();
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && !x.IsViewed).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.ViewedTime = DateTime.Now;
+                    item.IsViewed = true;
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
             }
 
+            return NotFound();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UnViewed(int id) {
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsViewed).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.ViewedTime = DateTime.Now;
+                    item.IsViewed = false;
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
+            }
+
+            return NotFound();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Move(int id, [FromBody]MoveItem move) {
+            if(ModelState.IsValid) {
+                var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).FirstOrDefault();
+                if(item is BaseVirtualItem) {
+                    item.ParentId = move.ParentId;
+                    _db.VirtualItems.Update(item);
+                    await _db.SaveChangesAsync();
+                    return Ok();
+                }
+            }
+            
             return NotFound();
         }
 

@@ -1,0 +1,62 @@
+@using VidsNet.Models;
+@using VidsNet.DataModels;
+@using VidsNet.Enums;
+@using VidsNet.Classes;
+@using Microsoft.AspNetCore.Mvc.Routing;
+@using Microsoft.AspNetCore.Html;
+@using System.IO;
+@model VidsNet.ViewModels.HomeViewModel
+@{
+    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
+    int parentItemCount = items.AsQueryable().Where(x => x.IsViewed).Count();
+}
+
+@functions {   
+    string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems) {
+        var ret = new TagBuilder("div");
+        int padding = 25;
+        List<BaseVirtualItem> it = items.Where(x => x.IsViewed).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        foreach(var item in it) {
+            if(item.Type == Item.Folder) {
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewFolder(item, padding, items.Where(x => x.ParentId == item.Id).Count(), View.Viewed, 0));
+            }
+            else {
+                var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
+                if(VidsNet.Constants.IsSqlite) {
+                    var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
+                    urlContext.Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)};
+                }
+                else {
+                    var tmp = (VirtualItem)item;
+                    urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
+                }
+
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), View.Viewed, 0));
+            }
+        }
+        return HtmlHelpers.TagToString(ret);
+    }
+}
+<div class="list-group">
+    <div class="list-group-item" style="background: #D8D8D8">
+        <div class="pull-left myPadding">
+            <h4 aria-hidden="true" class="glyphicon-folder-close glyphicon" id="0_name">
+                Parent
+            </h4>
+            <span class="pull-s-right label-pill label-default label countPadding" id="parentCount">@parentItemCount</span>
+            
+        </div>
+        <div class="pull-left">
+            <span class="pull-xs-left">
+                <select id="listingType" name="listingType" class="form-control listingPadding" onchange="changeVirtualView();">
+                    <option value="0">Default</option>
+                    <option value="1" selected="selected">Viewed</option>
+                    <option value="2">Deleted</option>
+                </select>
+            </span>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems))
+</div>

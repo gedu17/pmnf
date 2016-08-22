@@ -7,7 +7,7 @@ namespace VidsNet.DataModels
         public new DbSet<VirtualItem> VirtualItems {get;set;}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseMySql(@"Server=localhost;database=vidsnet;uid=vidsnet;pwd=k1NAzWHUGzIuzTv;");
+            optionsBuilder.UseMySql(@"Server=localhost;database=vidsnet;uid=vidsnet;pwd=aEB0CytkQkfsOjp8eWod;");
         }
     }
 }

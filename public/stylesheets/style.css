@@ -28,3 +28,35 @@ a {
 .no-underline {
   text-decoration: none !important;
 }
+
+.icon-big {
+  font-size: 75px;
+}
+
+.icon-medium { 
+  font-size: 50px;
+}
+
+.icon-small {
+  font-size: 25px;
+}
+
+.icon-xsmall {
+  font-size: 15px;
+}
+
+.myPadding {
+  padding: 5px 12px;
+}
+
+.listingPadding {
+  margin-top: 10px;
+}
+
+.newFolderPadding {
+  margin-top: 5px;
+}
+
+.countPadding {
+  margin: 0px 7px;
+}

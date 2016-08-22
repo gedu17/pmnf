@@ -1,0 +1,77 @@
+@using VidsNet.Models;
+@using VidsNet.DataModels;
+@using VidsNet.Enums;
+@using VidsNet.Classes;
+@using Microsoft.AspNetCore.Mvc.Routing;
+@using Microsoft.AspNetCore.Html;
+@using System.IO;
+@model VidsNet.ViewModels.HomeViewModel
+@{
+    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
+    int parentItemCount = items.AsQueryable().Where(x => x.ParentId == 0 && !x.IsViewed && !x.IsDeleted).Count();
+}
+
+@functions {   
+    string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems, int parent, int level) {
+        var ret = new TagBuilder("div");
+        int padding = level * 25;
+        List<BaseVirtualItem> it = items.Where(x => x.ParentId == parent && !x.IsViewed && !x.IsDeleted).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        foreach(var item in it) {
+            if(item.Type == Item.Folder) {
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewFolder(item, padding, items.Where(x => x.ParentId == item.Id
+                 && !x.IsViewed && !x.IsDeleted).Count(), View.Default));
+                ret.InnerHtml.AppendHtml(PrintListing(items, realItems, item.Id, level + 1));
+            }
+            else {
+                var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
+                if(VidsNet.Constants.IsSqlite) {
+                    var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
+                    urlContext.Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)};
+                }
+                else {
+                    var tmp = (VirtualItem)item;
+                    urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
+                }
+
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), View.Default));
+            }
+        }
+
+        if(parent != 0) {
+            var wrapper = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
+            { "id", string.Format("{0}_content", parent.ToString()) } }, ret);
+            return HtmlHelpers.TagToString(wrapper);
+        }
+
+        return HtmlHelpers.TagToString(ret);
+    }
+}
+<div class="list-group">
+    <div class="list-group-item" style="background: #D8D8D8">
+        <div class="pull-left myPadding">
+            <h4 aria-hidden="true" class="glyphicon-folder-close glyphicon" id="0_name">
+                Parent
+            </h4>
+            <span class="pull-s-right label-pill label-default label countPadding" id="parentCount">@parentItemCount</span>
+            
+        </div>
+        <div class="pull-left">
+            <span class="pull-xs-left">
+                <select id="listingType" name="listingType" class="form-control listingPadding" onchange="changeVirtualView();">
+                    <option value="0" selected="selected">Default</option>
+                    <option value="1">Viewed</option>
+                    <option value="2">Deleted</option>
+                </select>
+            </span>
+        </div>
+        <div class="pull-right newFolderPadding">
+            <button type="button" onclick="createFolder();" class="btn btn-link no-underline">
+                <i class="glyphicon glyphicon-plus icon-small"></i>
+                <i class="glyphicon glyphicon-folder-close icon-small"></i>
+            </button>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
+</div>

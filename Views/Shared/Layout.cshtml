@@ -13,6 +13,10 @@
 
     <script src="/public/javascripts/jquery-2.2.4.min.js"></script>
     <script src="/public/javascripts/bootstrap.min.js"></script>
+    <script src="/public/javascripts/helpers.js"></script>
+    <script src="/public/javascripts/items.js"></script>
+    <script src="/public/javascripts/modals.js"></script>
+    <script src="/public/javascripts/settings.js"></script>
     <script src="/public/javascripts/scripts.js"></script>
     <title>VidsNet // @Model.PageTitle </title>
 </head>
@@ -71,7 +75,7 @@
         </div>
     </nav>
     <div class="container" id="maincontainer">
-        <div class="content-box">
+        <div class="content-box" id="contentBox">
             @RenderBody()
         </div>
     </div>

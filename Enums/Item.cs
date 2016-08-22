@@ -5,7 +5,8 @@ namespace VidsNet.Enums
         None = -1,
         Folder,
         Video,
-        Subtitle
+        Subtitle,
+        VirtualFolder
     }
 
 }
