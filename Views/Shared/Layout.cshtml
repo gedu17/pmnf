@@ -15,7 +15,6 @@
     <script src="/public/javascripts/bootstrap.min.js"></script>
     <script src="/public/javascripts/helpers.js"></script>
     <script src="/public/javascripts/items.js"></script>
-    <script src="/public/javascripts/modals.js"></script>
     <script src="/public/javascripts/settings.js"></script>
     <script src="/public/javascripts/scripts.js"></script>
     <title>VidsNet // @Model.PageTitle </title>
@@ -45,37 +44,51 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
-                <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+                @if(@Model.LoggedIn) {
+                    <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                }
                 <a class="navbar-brand" href="/">VidsNet</a>
             </div>
             <div class="collapse navbar-collapse" id="navbar">
-                @if(@Model.LoggedIn) {
+                    @if(Model.LoggedIn) {
                     <ul class="nav navbar-nav">
                         @foreach(MenuItem item in @Model.MenuItems) {
                             if(@item.Name == @Model.ActiveMenuItem) {
                                 <li class="active">
-                                    <a href="#">@item.Name</a>
+                                    @if(!string.IsNullOrWhiteSpace(@item.Html)) {
+                                        <a href="#" class="btn btn-link" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>   
+                                    }
+                                    else {
+                                        <a href="#" class="btn btn-link" onclick="@item.OnClick">@item.Name</a>
+                                    }
+                                    
                                 </li>
                             }
                             else {
                                 <li>
-                                    <a href="@item.Url">@item.Name</a>
+                                    @if(!string.IsNullOrWhiteSpace(@item.Html)) {
+                                        <a href="@item.Url" class="btn btn-link" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>
+                                    }
+                                    else {
+                                        <a href="@item.Url" class="btn btn-link" onclick="@item.OnClick">@item.Name</a>
+                                    } 
                                 </li>
                             }                                
                         }
                     </ul>
                 }
+            }
                 
             </div>
         </div>
     </nav>
-    <div class="container" id="maincontainer">
-        <div class="content-box" id="contentBox">
+    <div class="container-fluid col-xs-12 col-sm-12 col-md-10 col-lg-8 col-xl-4 contentBox">
+        <div id="contentBox">
             @RenderBody()
         </div>
     </div>

@@ -18,12 +18,25 @@
     }
 
     string PrintListing(List<BaseVirtualItem> virtualItems, List<RealItem> realItems, int parent, int level) {
-        var ret = new TagBuilder("div");
-        int padding = level * 25;
+        TagBuilder ret = null;
+        if(parent != 0) {
+            ret = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
+            { "id", string.Format("{0}_content", parent.ToString()) } }, ret);
+        }
+        else {
+            ret = HtmlHelpers.GenerateItem("div", new List<string>(), new Dictionary<string, string>() {});
+        }
+
+        int padding = level * 10;
         List<RealItem> it = realItems.Where(x => x.ParentId == parent && (x.Type == Item.Folder || x.Type == Item.Video)).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
-        foreach(var item in it) {
+        for(int i = 0; i < it.Count; i++){
+            var item = it[i];
+            var isLast = false;
+            if(parent == 0 && (i+1) == it.Count) {
+                isLast = true;
+            }
             if(item.Type == Item.Folder) {
-                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewFolder(item, padding, realItems.Where(x => x.ParentId == item.Id).Count()));
+                ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewFolder(item, padding, realItems.Where(x => x.ParentId == item.Id).Count(), isLast));
                 ret.InnerHtml.AppendHtml(PrintListing(virtualItems, realItems, item.Id, level + 1));
             }
             else {
@@ -31,24 +44,18 @@
                 if(virtualItem is VirtualItem) {
                     var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
                     urlContext.Values = new {id = virtualItem.Id, session = Model.SessionHash, name = (virtualItem.Name + item.Extension)};
-                    ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext)));
+                    ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), isLast));
                 }
                 else {
-                    ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, "#"));
+                    ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, "#", isLast));
                 }
 
                 
             }
         }
-        //glyphicon glyphicon-menu-hamburger for options
-        if(parent != 0) {
-            var wrapper = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
-            { "id", string.Format("{0}_content", parent.ToString()) } }, ret);
-            return HtmlHelpers.TagToString(wrapper);
-        }
 
         return HtmlHelpers.TagToString(ret);
-}
+    }
 }
 <ul class="nav nav-tabs" id="settingsTabs">
     @{
@@ -80,7 +87,7 @@
 
         <div role="tabpanel" class="tab-pane @Html.Raw(active)" id="path_@item.Key" style="padding-top: 15px;">
             <div class="list-group">
-                 @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
+                @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
             </div>
         </div>
         i++;

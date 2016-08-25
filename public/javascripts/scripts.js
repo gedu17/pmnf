@@ -53,3 +53,7 @@ $( document ).ready(function() {
 
     updatePopovers();
 });
+
+function openSystemMessages() {
+    console.log("System messages are now opened!");
+}

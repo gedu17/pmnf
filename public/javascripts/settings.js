@@ -29,6 +29,7 @@ function createUser() {
         setHide("createUserSuccess");
         sendQuery("/account/create", data, "POST", cb);
     }
+    scrollToTop();
 }
 
 function deleteUser(id, name) {
@@ -113,6 +114,7 @@ function updateAdminSettings() {
     setHide("adminSettingsError");
     setHide("adminSettingsSuccess");
     sendQuery("/account/adminsettings", data, "POST", cb);
+    scrollToTop();
 }
 
 function updateUserPaths() {
@@ -135,6 +137,7 @@ function updateUserPaths() {
     setHide("userPathsError");
     setHide("userPathsSuccess");
     sendQuery("/account/userpaths", data, "POST", cb);
+    scrollToTop();
 }
 
 function changePassword() {
@@ -156,4 +159,5 @@ function changePassword() {
     else {
         setError("passwordChangeError", "passwordChangeSuccess", "Passwords do not match.");
     }
+    scrollToTop();
 }

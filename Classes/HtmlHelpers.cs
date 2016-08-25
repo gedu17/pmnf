@@ -54,17 +54,19 @@ namespace VidsNet.Classes
         }
 
         public static void GenerateDirectoryListing(ScanItem item, TagBuilder select, int level, List<UserSetting> userPaths) {
-            var padding = level * 25;
+            var padding = level * 10;
             foreach (var child in item.Children)
             {
                 var pathValue = string.Format("{0}{1}", child.Path, Path.DirectorySeparatorChar);
                 var guid = Guid.NewGuid().ToString();
+                var id = string.Format("{0}_div", Guid.NewGuid().ToString());
+                var stylePadding = string.Format("padding-left: {0}px", padding);
 
                 var isChecked = userPaths.Any(x => x.Value == pathValue);
                 var checkbox = HtmlHelpers.GenerateCheckbox(Path.GetFileName(child.Path), pathValue, child.Id.ToString(), isChecked);
 
-                var div = HtmlHelpers.GenerateItem("div", new List<string>() { "list-group-item"}, new Dictionary<string, string>() {
-                    { "style", string.Format("padding-left: {0}px", padding) }, { "id", string.Format("{0}_div", item.Id)} }, checkbox);
+                var div = HtmlHelpers.GenerateItem("div", new List<string>() { "list-group-item" }, new Dictionary<string, string>() {
+                    { "style", stylePadding }, { "id", id} }, checkbox);
 
                 if(child.Children.Count > 0) {
                     var button = GenerateFolder(Path.GetFileName(child.Path), guid, true);
@@ -77,9 +79,9 @@ namespace VidsNet.Classes
 
                 select.InnerHtml.AppendHtml(div);
 
+                var contentId = string.Format("{0}_content", guid);
                 var collapsedDiv = HtmlHelpers.GenerateItem("div", new List<string>() { "collapse" }, new Dictionary<string, string>() {
-                    { "id", guid } });
-                
+                    { "id", contentId } });
 
                 if(child.Type == Item.Folder) {
                     GenerateDirectoryListing(child, collapsedDiv, level + 1, userPaths);
@@ -90,9 +92,9 @@ namespace VidsNet.Classes
 
         public static TagBuilder GenerateFolder(string name, string guid, bool hasItems) {
             var folderIcon = "glyphicon-folder-close";
-
-            var nameSpan = HtmlHelpers.GenerateItem("span", new List<string>(), new Dictionary<string, string>() { 
-                        { "id", string.Format("{0}_name", guid)  }, { "style", "margin-left: 15px;"} }, null, name);
+            var id = string.Format("{0}_name", guid);
+            var nameSpan = HtmlHelpers.GenerateItem("span", new List<string>() { "marginLeft15px" }, new Dictionary<string, string>() { 
+                 { "id", id }}, null, name);
 
             if(hasItems) {
                 folderIcon = "glyphicon-folder-open";
@@ -104,40 +106,37 @@ namespace VidsNet.Classes
                 { "data-toggle", "collapse" }, { "data-target", string.Format("#{0}_content", guid) }, { "type", "button" } }, buttonSpan);
 
                 return button;
-
             }
             else {
-
-                var buttonSpan = HtmlHelpers.GenerateItem("span", new List<string>() { "glyphicon", folderIcon, "btn-link", "no-underline" }, 
-                    new Dictionary<string, string>() { { "aria-hidden", "true" }, { "style", "padding: 6px 12px;" } }, nameSpan);
+                var buttonSpan = HtmlHelpers.GenerateItem("span", new List<string>() { "glyphicon", folderIcon, "btn-link", "noUnderline", "folderPadding" }, 
+                    new Dictionary<string, string>() { { "aria-hidden", "true" } }, nameSpan);
 
                 return buttonSpan;
-            }
-
-            
-
-            
+            }            
         }
 
-        public static TagBuilder GenerateViewFolder(BaseVirtualItem item, int padding, int childCount, View viewType, int? parentId = null) {
-
-            var div = GenerateItem("div", new List<string>() { "list-group-item"}, new Dictionary<string, string>() {
-                { "style", string.Format("padding-left: {0}px", padding) }, { "id", string.Format("{0}_div", item.Id)} });
+        public static TagBuilder GenerateViewFolder(BaseVirtualItem item, int padding, int childCount, bool isLast, View viewType, int? parentId = null) {
+            var fix = string.Empty;
+            if(!isLast) {
+                fix = "viewBorderFix";
+            }
+            var divId = string.Format("{0}_div", item.Id);
+            var div = GenerateItem("div", new List<string>() { "list-group-item", fix}, new Dictionary<string, string>() {
+                { "style", string.Format("padding-left: {0}px", padding) }, { "id", divId} });
             
             var hasItems = childCount > 0;
             var button = GenerateFolder(Path.GetFileName(item.Name), item.Id.ToString(), hasItems);
-
+            var countId = string.Format("{0}_count", item.Id.ToString());
             var count = GenerateItem("span", new List<string>() { "label", "label-default", "label-pill", "pull-xs-right"},
-             new Dictionary<string, string>() { {"id", string.Format("{0}_count", item.Id.ToString())} }, null, childCount.ToString());
+             new Dictionary<string, string>() { {"id", countId} }, null, childCount.ToString());
 
             var optionsSpan = GenerateItem("span", new List<string>(){ "glyphicon", "glyphicon-menu-hamburger" }, new Dictionary<string, string>() {
                 { "aria-hidden", "true" } });
 
-
+            var optionsId = string.Format("viewItem_{0}", item.Id);
             var optionsButton = HtmlHelpers.GenerateItem("button", new List<string>() { "btn", "btn-link" }, new Dictionary<string, string>() { 
                 { "data-toggle", "popover" }, {"data-placement", "top"}, {"data-content", TagToString(GenerateViewItemOptions(item, viewType, parentId)) },
-                 {"id", string.Format("viewItem_{0}", item.Id)},  { "type", "button" }, 
-                 {"tabindex", item.Id.ToString() } }, optionsSpan);
+                 {"id", optionsId},  { "type", "button" }, {"tabindex", item.Id.ToString() } }, optionsSpan);
             
             div.InnerHtml.AppendHtml(button);
             div.InnerHtml.AppendHtml(count);
@@ -146,8 +145,12 @@ namespace VidsNet.Classes
             return div;
         }
 
-        public static TagBuilder GenerateViewFolder(RealItem item, int padding, int childCount) {
-            var div = GenerateItem("div", new List<string>() { "list-group-item"}, new Dictionary<string, string>() {
+        public static TagBuilder GenerateViewFolder(RealItem item, int padding, int childCount, bool isLast) {
+            var fix = string.Empty;
+            if(!isLast) {
+                fix = "viewBorderFix";
+            }
+            var div = GenerateItem("div", new List<string>() { "list-group-item", fix}, new Dictionary<string, string>() {
                 { "style", string.Format("padding-left: {0}px", padding) } });
             
             var hasItems = childCount > 0;
@@ -164,46 +167,49 @@ namespace VidsNet.Classes
 
         public static TagBuilder GenerateViewItemOptions(BaseVirtualItem item, View viewType = View.Default, int? parentId = null) {
             var div = new TagBuilder("div");
-            var padding = string.Format("padding: {0}px {1}px;", 0,5);
             if(!parentId.HasValue) {
                 parentId = item.ParentId;
             }
             if(viewType == View.Viewed) {
-                var viewed = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-eye-close", "icon-small" }, new Dictionary<string, string>() {
-                { "aria-hidden", "true" }, {"style", padding} });
-                var viewedLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", string.Format("unviewedItem({0}, {1});", item.Id, parentId)} }, viewed);
+                var viewedOnClick = string.Format("unviewedItem({0}, {1});", item.Id, parentId);
+                var viewed = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-eye-close", "iconSmall" }, new Dictionary<string, string>() {
+                { "aria-hidden", "true" } });
+                var viewedLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", viewedOnClick} }, viewed);
                 div.InnerHtml.AppendHtml(viewedLink);
             }
             else if(viewType == View.Deleted) {
-                var delete = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-ok", "icon-small" }, new Dictionary<string, string>() {
-                    { "aria-hidden", "true" }, {"style", padding} });
-                var deleteLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", string.Format("undeleteItem({0}, {1});", item.Id, parentId)} }, delete);
+                var deleteOnClick = string.Format("undeleteItem({0}, {1});", item.Id, parentId);
+                var delete = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-ok", "iconSmall" }, new Dictionary<string, string>() {
+                    { "aria-hidden", "true" } });
+                var deleteLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", deleteOnClick} }, delete);
                 div.InnerHtml.AppendHtml(deleteLink);
             }
             else {
-                var viewed = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-eye-open", "icon-small" }, new Dictionary<string, string>() {
-                { "aria-hidden", "true" }, {"style", padding} });
-                var viewedLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", string.Format("viewedItem({0}, {1});", item.Id, parentId)} }, viewed);
+                var viewedOnClick = string.Format("viewedItem({0}, {1});", item.Id, parentId);
+                var viewed = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-eye-open", "iconSmall" }, new Dictionary<string, string>() {
+                { "aria-hidden", "true" } });
+                var viewedLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", viewedOnClick} }, viewed);
 
+                var editOnClick = string.Format("editItem({0});", item.Id);
+                var edit = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-pencil", "iconSmall" }, new Dictionary<string, string>() {
+                    { "aria-hidden", "true" } });
+                var editLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", editOnClick} }, edit);
                 
-                var edit = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-pencil", "icon-small" }, new Dictionary<string, string>() {
-                    { "aria-hidden", "true" }, {"style", padding} });
-                var editLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", "editItem("+item.Id+");"} }, edit);
-                
-                
-                var delete = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-remove", "icon-small" }, new Dictionary<string, string>() {
-                    { "aria-hidden", "true" }, {"style", padding} });
-                var deleteLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", string.Format("deleteItem({0}, {1});", item.Id, parentId)} }, delete);
+                var deleteOnClick = string.Format("deleteItem({0}, {1});", item.Id, parentId);
+                var delete = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-remove", "iconSmall" }, new Dictionary<string, string>() {
+                    { "aria-hidden", "true" } });
+                var deleteLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", deleteOnClick} }, delete);
 
-                var move = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-move", "icon-small" }, new Dictionary<string, string>() {
-                    { "aria-hidden", "true" }, {"style", padding} });
-                var moveLink = GenerateItem("button", new List<string>() { "btn", "btn-link"}, new Dictionary<string, string>() {
-                    {"onclick", "moveItem("+item.Id+");"} }, move);
+                var moveOnClick = string.Format("moveItem({0});", item.Id);
+                var move = GenerateItem("span", new List<string>() {"glyphicon", "glyphicon-move", "iconSmall" }, new Dictionary<string, string>() {
+                    { "aria-hidden", "true" } });
+                var moveLink = GenerateItem("button", new List<string>() { "btn", "btn-link", "popoverIcon"}, new Dictionary<string, string>() {
+                    {"onclick", moveOnClick} }, move);
 
                 div.InnerHtml.AppendHtml(viewedLink);
                 div.InnerHtml.AppendHtml(editLink);
@@ -211,21 +217,22 @@ namespace VidsNet.Classes
                 div.InnerHtml.AppendHtml(deleteLink);
             }
 
-            
-
-            
-
             return div;
         }
 
-        public static TagBuilder GenerateViewItem(BaseVirtualItem item, int padding, string url, View viewType = View.Default, int? parentId = null) {
-            var div = GenerateItem("div", new List<string>() { "list-group-item"}, new Dictionary<string, string>() {
-                 { "id", string.Format("{0}_div", item.Id)} });
-            
+        public static TagBuilder GenerateViewItem(BaseVirtualItem item, int padding, string url, bool isLast, View viewType = View.Default, int? parentId = null) {
+            var fix = string.Empty;
+            if(!isLast) {
+                fix = "viewBorderFix";
+            }
+            var divId = string.Format("{0}_div", item.Id);
+            var div = GenerateItem("div", new List<string>() { "list-group-item", fix }, new Dictionary<string, string>() {
+                 { "id", divId } });
+            var nameId = string.Format("{0}_name", item.Id);
             var nameSpan = GenerateItem("span", new List<string>(), new Dictionary<string, string>() {
-                { "id", string.Format("{0}_name", item.Id) } }, null, item.Name);
-            var nameLink = GenerateItem("a", new List<string>(), new Dictionary<string, string>() {
-                { "href", url }, { "style", "margin-left: 15px;" } }, nameSpan);
+                { "id", nameId } }, null, item.Name);
+            var nameLink = GenerateItem("a", new List<string>() { "marginLeft15px" }, new Dictionary<string, string>() {
+                { "href", url } }, nameSpan);
 
             var iconSpan = GenerateItem("span", new List<string>(){ "glyphicon", "glyphicon-film"}, new Dictionary<string, string>() {
                 { "aria-hidden", "true" }, { "style", string.Format("padding-left: {0}px;", padding) } }, nameLink);
@@ -233,10 +240,10 @@ namespace VidsNet.Classes
             var optionsSpan = GenerateItem("span", new List<string>(){ "glyphicon", "glyphicon-menu-hamburger" }, new Dictionary<string, string>() {
                 { "aria-hidden", "true" } });
 
+            var buttonId = string.Format("viewItem_{0}", item.Id);
             var button = HtmlHelpers.GenerateItem("button", new List<string>() { "btn", "btn-link" }, new Dictionary<string, string>() { 
                 { "data-toggle", "popover" }, {"data-placement", "top"}, {"data-content", TagToString(GenerateViewItemOptions(item, viewType, parentId))},
-                 {"id", string.Format("viewItem_{0}", item.Id)},  { "type", "button" },
-                 {"tabindex", item.Id.ToString() } }, optionsSpan);
+                 {"id", buttonId },  { "type", "button" }, {"tabindex", item.Id.ToString() } }, optionsSpan);
             
             div.InnerHtml.AppendHtml(iconSpan);
             div.InnerHtml.AppendHtml(button);
@@ -244,14 +251,19 @@ namespace VidsNet.Classes
 
         }
 
-        public static TagBuilder GenerateViewItem(RealItem item, int padding, string url) {
-            var div = GenerateItem("div", new List<string>() { "list-group-item"}, new Dictionary<string, string>() {
-                 { "id", string.Format("{0}_div", item.Id)} });
-            
+        public static TagBuilder GenerateViewItem(RealItem item, int padding, string url, bool isLast) {
+            var fix = string.Empty;
+            if(!isLast) {
+                fix = "viewBorderFix";
+            }
+            var divId = string.Format("{0}_div", item.Id);
+            var div = GenerateItem("div", new List<string>() { "list-group-item", fix}, new Dictionary<string, string>() {
+                 { "id", divId } });
+            var nameId = string.Format("{0}_name", item.Id);
             var nameSpan = GenerateItem("span", new List<string>(), new Dictionary<string, string>() {
-                { "id", string.Format("{0}_name", item.Id) } }, null, item.Name);
-            var nameLink = GenerateItem("a", new List<string>(), new Dictionary<string, string>() {
-                { "href", url }, { "style", "margin-left: 15px;" } }, nameSpan);
+                { "id", nameId } }, null, item.Name);
+            var nameLink = GenerateItem("a", new List<string>() { "marginLeft15px" }, new Dictionary<string, string>() {
+                { "href", url } }, nameSpan);
 
             var iconSpan = GenerateItem("span", new List<string>(){ "glyphicon", "glyphicon-film"}, new Dictionary<string, string>() {
                 { "aria-hidden", "true" }, { "style", string.Format("padding-left: {0}px", padding) } }, nameLink);

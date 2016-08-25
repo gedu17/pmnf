@@ -33,10 +33,14 @@ namespace VidsNet.Classes
             _db = db;
             AdminSettings = new List<Setting>();
             IsAdmin = false;
+            Id = 0;
             
             ParseClaims(principal.Claims);
         }
 
+        public bool IsLoggedIn() {
+            return Id > 0;
+        }
 
         public async Task UpdateAdminSetting(SettingsPostViewModel item) {
             if(IsAdmin) {
@@ -61,7 +65,6 @@ namespace VidsNet.Classes
             var itemsToAdd = newPaths.Except(currentPaths).ToList();
             var itemsToRemove = currentPaths.Except(newPaths).ToList();
 
-            _db.UserSettings.AddRange(itemsToAdd);
             itemsToRemove.ForEach(x => {
                 var realItems = _db.RealItems.Where(y => y.UserPathId == x.Id).ToList();
                 var virtualItems = new List<BaseVirtualItem>();
@@ -76,6 +79,7 @@ namespace VidsNet.Classes
             });
 
             _db.UserSettings.RemoveRange(itemsToRemove);
+            _db.UserSettings.AddRange(itemsToAdd);
 
             await _db.SaveChangesAsync();
             UserSettings = _db.UserSettings.Where(x => x.UserId == Id).ToList();

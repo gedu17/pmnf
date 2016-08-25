@@ -2,61 +2,68 @@ html {
   height: 100%;
 }
 body {
-  padding: 50px;
+  padding: 0px;
   font: 18px "Lucida Grande", Helvetica, Arial, sans-serif;
   height: 100%;
 }
-a {
-  color: #00b7ff;
-}
-.avatar {
-  width: 64px;
-  height: 64px !important;
-}
-.login-box {
+
+.loginBox {
   position: absolute !important;
-  top: 50%;
+  left: 50% !important;
+  transform: translate(-50%, 0%) !important;
+}
+
+.contentBox {
+  padding-top: 65px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 0%);
+  width: 100%;
 }
-.label-margin {
-  margin-left: 10px;
-}
-.content-box {
-  margin-top: 50px;
-}
-.no-underline {
+
+.noUnderline {
   text-decoration: none !important;
 }
 
-.icon-big {
-  font-size: 75px;
+.iconSmall {
+  font-size: 20px;
 }
 
-.icon-medium { 
-  font-size: 50px;
-}
-
-.icon-small {
-  font-size: 25px;
-}
-
-.icon-xsmall {
+.iconXsmall {
   font-size: 15px;
 }
 
+.popoverIcon {
+  padding: 0px 5px !important;
+}
+
 .myPadding {
-  padding: 5px 12px;
+  padding: 3px 0px;
 }
 
 .listingPadding {
-  margin-top: 10px;
+  margin-top: 5px;
+  padding-left: 12px;
 }
 
-.newFolderPadding {
-  margin-top: 5px;
+.controlsPadding {
+  margin-top: 7px;
+  margin-left: 12px;
 }
 
 .countPadding {
+  position: relative;
   margin: 0px 7px;
+  top: -1px;
+}
+
+.viewBorderFix {
+  border-bottom: 0px !important;
+}
+
+.marginLeft15px {
+  margin-left: 15px;
+}
+
+.folderPadding {
+  padding: 6px 12px;
 }

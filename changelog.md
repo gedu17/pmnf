@@ -1,5 +1,20 @@
 #VidsNET
 
+##2.1.0
+###Back-End
+- [x] Fix not redirecting from login page when already logged in
+- [x] Optimise query for items in TemplateController move and create
+- [x] Move all style related code to stylesheet
+
+###Front-End
+- [x] Fix layout for mobile and desktop
+- [x] Fix regression in settings userPaths
+- [x] Add ScrollToTop function in settings
+- [x] Remove console.log left over from 2.0.0
+- [x] Fix double border line when child items are opened
+- [x] Remove Viewed view and Scan menu items
+- [x] Change Menu items text to icons
+
 ##2.0.0
 ###Back-End
 - [x] Fix not checking for deleted and viewed flags in virtual view 

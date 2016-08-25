@@ -4,11 +4,8 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using VidsNet.Scanners;
-using VidsNet.Models;
-using System.Threading.Tasks;
 using VidsNet.ViewModels;
 using VidsNet.DataModels;
-using System;
 using VidsNet.Classes;
 using VidsNet.Filters;
 
@@ -43,14 +40,6 @@ namespace VidsNet.Controllers
                 return View(model);
             }
             
-        }
-
-        [Route("scan")]
-        //TEST METHOD
-        public async Task<IActionResult> Scan() {
-            var set = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList());            
-            var model = new ScanViewModel(_user) {Data = set};
-            return View(model);
         }
 
         [Route("physical")]

@@ -104,3 +104,15 @@ function undeleteItem(id, parent) {
     };
     sendQuery("/item/undelete/" + id, null, "PUT", cb);
 }
+
+function rescan() {
+    var cb = function(xhr) {
+        if(xhr.status === 200) {
+            updateVirtualView();
+            //TODO: Update systemMessages here !
+        }
+    };
+
+    $("#contentBox").empty();
+    sendQuery("/items/scan/", null, "GET", cb);
+}

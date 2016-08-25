@@ -2,50 +2,47 @@
 @using VidsNet.Classes;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-}
-
-<div class="container-fluid col-md-12 content-box">            
-    <div class="panel panel-default">
-        <div class="panel-heading">Settings</div>
-        <div class="panel-body">
-            <ul class="nav nav-tabs" id="settingsTabs">
-                <li role="presentation" class="active">
-                    <a href="#passwordChange" aria-controls="passwordChange" role="tab" data-toggle="tab">Password change</a>
+}                  
+<div class="panel panel-default">
+    <div class="panel-heading">Settings</div>
+    <div class="panel-body">
+        <ul class="nav nav-tabs" id="settingsTabs">
+            <li role="presentation" class="active">
+                <a href="#passwordChange" aria-controls="passwordChange" role="tab" data-toggle="tab">Password change</a>
+            </li>
+            <li role="presentation">
+                <a href="#userPaths" aria-controls="userPaths" role="tab" data-toggle="tab">User paths</a>
+            </li>
+            @if(@Model.IsAdmin) {
+                <li role="presentation">
+                    <a href="#adminSettings" aria-controls="adminSettings" role="tab" data-toggle="tab">Admin settings</a>
                 </li>
                 <li role="presentation">
-                    <a href="#userPaths" aria-controls="userPaths" role="tab" data-toggle="tab">User paths</a>
+                    <a href="#createUser" aria-controls="createUser" role="tab" data-toggle="tab">Create user</a>
                 </li>
-                @if(@Model.IsAdmin) {
-                     <li role="presentation">
-                        <a href="#adminSettings" aria-controls="adminSettings" role="tab" data-toggle="tab">Admin settings</a>
-                     </li>
-                     <li role="presentation">
-                        <a href="#createUser" aria-controls="createUser" role="tab" data-toggle="tab">Create user</a>
-                     </li>
-                     <li role="presentation">
-                        <a href="#manageUsers" aria-controls="manageUsers" role="tab" data-toggle="tab">Manage users</a>
-                     </li>
-                }
-            </ul>
-            <div class="tab-content" id="settingsContent">
-                <div role="tabpanel" class="tab-pane active" id="passwordChange" style="padding-top: 15px;">
-                    @Html.Partial("PasswordChange")
-                </div>
-                <div role="tabpanel" class="tab-pane" id="userPaths" style="padding-top: 15px;">
-                    @Html.Partial("UserPaths")
-                </div>
-                @if(@Model.IsAdmin) {
-                    <div role="tabpanel" class="tab-pane" id="adminSettings" style="padding-top: 15px;">
-                        @Html.Partial("AdminSettings")
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="createUser" style="padding-top: 15px;">
-                        @Html.Partial("CreateUser")
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="manageUsers" style="padding-top: 15px;">
-                        @Html.Partial("ManageUsers")
-                    </div>
-                }
+                <li role="presentation">
+                    <a href="#manageUsers" aria-controls="manageUsers" role="tab" data-toggle="tab">Manage users</a>
+                </li>
+            }
+        </ul>
+        <div class="tab-content" id="settingsContent">
+            <div role="tabpanel" class="tab-pane active" id="passwordChange" style="padding-top: 15px;">
+                @Html.Partial("PasswordChange")
             </div>
+            <div role="tabpanel" class="tab-pane" id="userPaths" style="padding-top: 15px;">
+                @Html.Partial("UserPaths")
+            </div>
+            @if(@Model.IsAdmin) {
+                <div role="tabpanel" class="tab-pane" id="adminSettings" style="padding-top: 15px;">
+                    @Html.Partial("AdminSettings")
+                </div>
+                <div role="tabpanel" class="tab-pane" id="createUser" style="padding-top: 15px;">
+                    @Html.Partial("CreateUser")
+                </div>
+                <div role="tabpanel" class="tab-pane" id="manageUsers" style="padding-top: 15px;">
+                    @Html.Partial("ManageUsers")
+                </div>
+            }
         </div>
     </div>
 </div>

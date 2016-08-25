@@ -21,12 +21,12 @@ namespace VidsNet.Classes
 
         public MenuItems() {
             Items = new List<MenuItem>();
-            Items.Add(new MenuItem(){ Name = "Virtual view", Url = "/" });
-            Items.Add(new MenuItem(){ Name = "Physical view", Url = "/physical" });
-            Items.Add(new MenuItem(){ Name = "Viewed view", Url = "/viewed" });
-            Items.Add(new MenuItem(){ Name = "Scan", Url = "/scan" });
-            Items.Add(new MenuItem(){ Name = "Settings", Url = "/account/settings" });
-            Items.Add(new MenuItem(){ Name = "Logout", Url = "/account/logout" });
+            Items.Add(new MenuItem(){ Name = "Virtual view", Url = "/", Html = "<i class=\"glyphicon glyphicon-facetime-video iconSmall\"></i>" });
+            Items.Add(new MenuItem(){ Name = "Physical view", Url = "/physical", Html = "<i class=\"glyphicon glyphicon-th-list iconSmall\"></i>" });
+            Items.Add(new MenuItem(){ Name = "Settings", Url = "/account/settings", Html = "<i class=\"glyphicon glyphicon-wrench iconSmall\"></i>" });
+            Items.Add(new MenuItem(){ Name = "System Messages", Url = "#", Html = "<i class=\"glyphicon glyphicon-envelope iconSmall\"></i></button>",
+                OnClick = "openSystemMessages();" });
+            Items.Add(new MenuItem(){ Name = "Logout", Url = "/account/logout", Html = "<i class=\"glyphicon glyphicon-log-out iconSmall\"></i>" });
         }
 
         bool IEnumerator.MoveNext()

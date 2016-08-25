@@ -50,7 +50,6 @@ function updatePopovers() {
 }
 
 function decreaseParentCount(parent) {
-    console.log("Parent is " + parent);
     if(parseInt(parent) === 0) {
         var count = parseInt($("#parentCount").text());
         $("#parentCount").text(count-1);
@@ -59,5 +58,8 @@ function decreaseParentCount(parent) {
         var count = parseInt($("#" + parent + "_count").text());
         $("#" + parent + "_count").text(count-1);
     }
-    
+}
+
+function scrollToTop() {
+    $("html, body").animate({ scrollTop: 0 }, "slow");
 }

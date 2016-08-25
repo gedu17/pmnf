@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using VidsNet.Classes;
 using VidsNet.DataModels;
+using VidsNet.Enums;
 using VidsNet.Filters;
 using VidsNet.ViewModels;
 
@@ -29,7 +30,8 @@ namespace VidsNet.Controllers
                 if(currentItem is BaseVirtualItem) {
                     currentItemId = currentItem.ParentId;
                 }
-                var viewModel = new MoveViewModel(_user) { Items = _db.VirtualItems.Where(x => x.UserId == _user.Id && !x.IsDeleted && !x.IsViewed).ToList(), 
+                var viewModel = new MoveViewModel(_user) { Items = _db.VirtualItems.Where(x => x.UserId == _user.Id 
+                && !x.IsDeleted && !x.IsViewed && x.Type == Item.Folder).ToList(), 
                 CurrentItem = currentItemId };
                 return View(viewModel);
             }
@@ -80,7 +82,8 @@ namespace VidsNet.Controllers
 
         public IActionResult Create() {
             if(ModelState.IsValid) {
-                var viewModel = new MoveViewModel(_user) { Items = _db.VirtualItems.Where(x => x.UserId == _user.Id && !x.IsDeleted && !x.IsViewed).ToList(), 
+                var viewModel = new MoveViewModel(_user) { Items = _db.VirtualItems.Where(x => x.UserId == _user.Id 
+                && !x.IsDeleted && !x.IsViewed && x.Type == Item.Folder).ToList(), 
                 CurrentItem = 0 };
                 return View(viewModel);
             }

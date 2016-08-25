@@ -50,9 +50,12 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
-            var model = new LoginViewModel(_user);
-            model.ReturnUrl = returnUrl;
-            return View(model);
+            if(!_user.IsLoggedIn()){
+                var model = new LoginViewModel(_user);
+                model.ReturnUrl = returnUrl;
+                return View(model);
+            }
+            return Redirect("/");
         }
 
         [HttpPost]
