@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using VidsNet.DataModels;
+using VidsNet.Enums;
 
 namespace VidsNet.Classes
 {
@@ -24,8 +25,8 @@ namespace VidsNet.Classes
             Items.Add(new MenuItem(){ Name = "Virtual view", Url = "/", Html = "<i class=\"glyphicon glyphicon-facetime-video iconSmall\"></i>" });
             Items.Add(new MenuItem(){ Name = "Physical view", Url = "/physical", Html = "<i class=\"glyphicon glyphicon-th-list iconSmall\"></i>" });
             Items.Add(new MenuItem(){ Name = "Settings", Url = "/account/settings", Html = "<i class=\"glyphicon glyphicon-wrench iconSmall\"></i>" });
-            Items.Add(new MenuItem(){ Name = "System Messages", Url = "#", Html = "<i class=\"glyphicon glyphicon-envelope iconSmall\"></i></button>",
-                OnClick = "openSystemMessages();" });
+            Items.Add(new MenuItem(){ Name = "System Messages", Url = "/systemmmessages", 
+                Html = "<i class=\"glyphicon glyphicon-envelope iconSmall\"></i></button>" });
             Items.Add(new MenuItem(){ Name = "Logout", Url = "/account/logout", Html = "<i class=\"glyphicon glyphicon-log-out iconSmall\"></i>" });
         }
 

@@ -8,9 +8,10 @@ using VidsNet.DataModels;
 namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
 {
     [DbContext(typeof(DatabaseContextSqlite))]
-    partial class DatabaseContextSqliteModelSnapshot : ModelSnapshot
+    [Migration("20160826095557_SystemMessage_LongMessage")]
+    partial class SystemMessage_LongMessage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");

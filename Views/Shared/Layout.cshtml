@@ -1,4 +1,5 @@
 @using VidsNet.DataModels;
+@using VidsNet.Enums;
 @model VidsNet.ViewModels.BaseViewModel
 <!html5>
 <html>
@@ -58,13 +59,20 @@
                     @if(Model.LoggedIn) {
                     <ul class="nav navbar-nav">
                         @foreach(MenuItem item in @Model.MenuItems) {
+                            var hide = string.Empty;
+                            if(item.ItemType == LinkType.Desktop) {
+                                hide = "hidden-xs hidden-sm hidden-md";
+                            }
+                            else if(item.ItemType == LinkType.Mobile) {
+                                hide = "hidden-lg hidden-xl";
+                            }
                             if(@item.Name == @Model.ActiveMenuItem) {
                                 <li class="active">
                                     @if(!string.IsNullOrWhiteSpace(@item.Html)) {
-                                        <a href="#" class="btn btn-link" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>   
+                                        <a href="#" class="btn btn-link @hide" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>   
                                     }
                                     else {
-                                        <a href="#" class="btn btn-link" onclick="@item.OnClick">@item.Name</a>
+                                        <a href="#" class="btn btn-link @hide" onclick="@item.OnClick">@item.Name</a>
                                     }
                                     
                                 </li>
@@ -72,17 +80,17 @@
                             else {
                                 <li>
                                     @if(!string.IsNullOrWhiteSpace(@item.Html)) {
-                                        <a href="@item.Url" class="btn btn-link" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>
+                                        <a href="@item.Url" class="btn btn-link @hide" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>
                                     }
                                     else {
-                                        <a href="@item.Url" class="btn btn-link" onclick="@item.OnClick">@item.Name</a>
+                                        <a href="@item.Url" class="btn btn-link @hide" onclick="@item.OnClick">@item.Name</a>
                                     } 
                                 </li>
                             }                                
                         }
                     </ul>
                 }
-            }
+            
                 
             </div>
         </div>

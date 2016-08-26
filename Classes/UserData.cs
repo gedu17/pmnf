@@ -105,8 +105,25 @@ namespace VidsNet.Classes
                 msg.Read = 1;
                 _db.SystemMessages.Update(msg);
                 await _db.SaveChangesAsync();
+                return true;
             }
             return false;
+        }
+
+        public async Task<bool> DeleteSystemMessage(int id) {
+            var msg = _db.SystemMessages.Where(x => x.Id == id && x.UserId == Id).FirstOrDefault();
+            if(msg is SystemMessage) {
+                _db.SystemMessages.Remove(msg);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task CleanSystemMessages() {
+            var messages = _db.SystemMessages.Where(x => x.UserId == Id).ToList();
+            _db.SystemMessages.RemoveRange(messages);
+            await _db.SaveChangesAsync();
         }
 
         public void ParseClaims(IEnumerable<Claim> claims) {

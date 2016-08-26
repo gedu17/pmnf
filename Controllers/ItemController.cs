@@ -80,9 +80,14 @@ namespace VidsNet.Controllers
                     await _db.SaveChangesAsync();
 
                 }
+
+                await _user.AddSystemMessage("New item succesfully created.", Severity.Debug);
+                return Ok();
+                
             }
             
-            return Ok();
+            await _user.AddSystemMessage("New item creation failed, modelstate is invalid.", Severity.Error);
+            return NotFound();
         }
         
         [HttpPut]
@@ -96,10 +101,12 @@ namespace VidsNet.Controllers
                     item.Name = frontEndItem.Name.Trim();
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully edited with value {1}.", id, frontEndItem.Name), Severity.Debug);
                     return Ok();
                 }
             }
-            
+
+            await _user.AddSystemMessage(string.Format("Item {0} editing with value {1} failed, modelstate is invalid.", id, frontEndItem.Name), Severity.Error);
             return NotFound();
         }
 
@@ -112,10 +119,11 @@ namespace VidsNet.Controllers
                     item.IsDeleted = true;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully flagged as deleted.", id), Severity.Debug);
                     return Ok();
                 }
             }
-            
+            await _user.AddSystemMessage(string.Format("Item {0} flagging as deleted failed, id not found.", id), Severity.Error);
             return NotFound();
         }
 
@@ -128,10 +136,12 @@ namespace VidsNet.Controllers
                     item.IsDeleted = false;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully unflagged as deleted.", id), Severity.Debug);
                     return Ok();
                 }
             }
-            
+
+            await _user.AddSystemMessage(string.Format("Item {0} unflagging as deleted failed, id not found.", id), Severity.Error);
             return NotFound();
         }
 
@@ -144,10 +154,12 @@ namespace VidsNet.Controllers
                     item.IsViewed = true;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully flagged as viewed.", id), Severity.Debug);
                     return Ok();
                 }
             }
 
+            await _user.AddSystemMessage(string.Format("Item {0} flagging as viewed failed, id not found.", id), Severity.Error);
             return NotFound();
         }
 
@@ -160,10 +172,12 @@ namespace VidsNet.Controllers
                     item.IsViewed = false;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully unflagging as viewed.", id), Severity.Debug);
                     return Ok();
                 }
             }
 
+            await _user.AddSystemMessage(string.Format("Item {0} unflagging as viewed failed, id not found.", id), Severity.Error);
             return NotFound();
         }
 
@@ -175,10 +189,12 @@ namespace VidsNet.Controllers
                     item.ParentId = move.ParentId;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
+                    await _user.AddSystemMessage(string.Format("Item {0} succesfully moved to folder {1}.", id, move.ParentId), Severity.Debug);
                     return Ok();
                 }
             }
             
+            await _user.AddSystemMessage(string.Format("Item {0} moving to {1} failed, modelstate is invalid.", id, move.ParentId), Severity.Error);
             return NotFound();
         }
 
@@ -202,6 +218,7 @@ namespace VidsNet.Controllers
                 }
             }
 
+            await _user.AddSystemMessage(string.Format("Item {0} for viewing with name {1} and session id {2} not found.", id, name, session), Severity.Error);
             return NotFound();
         }
     }

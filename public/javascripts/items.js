@@ -1,7 +1,7 @@
 function moveItem(id) {
     var cb = function(xhr) {
         if(xhr.status === 200) {
-            openModal("Move", xhr.responseText);
+            openModal("Move", xhr.responseText, false);
 
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {
@@ -22,7 +22,7 @@ function moveItem(id) {
 function editItem(id) {
     var cb = function(xhr) {
         if(xhr.status === 200) {
-            openModal("Rename", xhr.responseText);
+            openModal("Rename", xhr.responseText, false);
 
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {
@@ -43,7 +43,7 @@ function editItem(id) {
 function createFolder() {
     var cb = function(xhr) {
         if(xhr.status === 200) {
-            openModal("New folder", xhr.responseText);
+            openModal("New folder", xhr.responseText, false);
 
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {

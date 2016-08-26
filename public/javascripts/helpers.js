@@ -20,6 +20,10 @@ function setHide(id) {
     }
 }
 
+function setShow(id) {
+    $("#" + id).removeClass("hide");
+}
+
 function sendQuery(url, data, method, callback) {
     $.ajax({
         url: url,
@@ -36,9 +40,15 @@ function clearForm(id) {
     document.getElementById(id).reset();
 }
 
-function openModal(title, text) {
+function openModal(title, text, hideSave) {
     $("#popupTitle").text(title);
     $("#popupBody").html(text);
+    if(hideSave === true){
+        setHide("popupSave");
+    }
+    else {
+        setShow("popupSave");
+    }
     $("#popup").modal();
 }
 
@@ -62,4 +72,9 @@ function decreaseParentCount(parent) {
 
 function scrollToTop() {
     $("html, body").animate({ scrollTop: 0 }, "slow");
+}
+
+function updateContent(content) {
+    var txt = content.replace(new RegExp("&lt;", 'g'), "<").replace(new RegExp("&gt;", 'g'), ">");
+    $("#contentBox").html(txt);
 }

@@ -72,7 +72,7 @@ namespace VidsNet.Controllers
                 var claimsPrincipal = _userRepository.Get(model.Username);
                 await HttpContext.Authentication.SignInAsync("Cookie", claimsPrincipal,
                 new AuthenticationProperties{
-                    ExpiresUtc = DateTime.Now.AddMinutes(120),
+                    ExpiresUtc = DateTime.Now.AddMinutes(Constants.CookieExpiryTime),
                     IsPersistent = true,
                     AllowRefresh = true
                 });

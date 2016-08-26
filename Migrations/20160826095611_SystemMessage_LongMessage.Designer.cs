@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using VidsNet.DataModels;
 
-namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
+namespace vidsnet.Migrations
 {
-    [DbContext(typeof(DatabaseContextSqlite))]
-    partial class DatabaseContextSqliteModelSnapshot : ModelSnapshot
+    [DbContext(typeof(DatabaseContext))]
+    [Migration("20160826095611_SystemMessage_LongMessage")]
+    partial class SystemMessage_LongMessage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
@@ -146,14 +147,24 @@ namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
                     b.ToTable("UserSettings");
                 });
 
-            modelBuilder.Entity("VidsNet.Models.VirtualItemSqlite", b =>
+            modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
                 {
                     b.HasBaseType("VidsNet.DataModels.BaseVirtualItem");
 
 
-                    b.ToTable("VirtualItemSqlite");
+                    b.HasIndex("RealItemId");
 
-                    b.HasDiscriminator().HasValue("VirtualItemSqlite");
+                    b.ToTable("VirtualItem");
+
+                    b.HasDiscriminator().HasValue("VirtualItem");
+                });
+
+            modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
+                {
+                    b.HasOne("VidsNet.Models.RealItem", "RealItem")
+                        .WithMany()
+                        .HasForeignKey("RealItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
         }
     }

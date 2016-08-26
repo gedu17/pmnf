@@ -11,5 +11,6 @@ namespace VidsNet.Models
         public int Read {get;set;}
         public Severity Severity {get;set;}
         public DateTime Timestamp {get;set;}
+        public string LongMessage {get;set;}
     }
 }

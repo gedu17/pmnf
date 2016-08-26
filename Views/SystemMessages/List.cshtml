@@ -1,0 +1,54 @@
+@using VidsNet.Models;
+@using VidsNet.Classes;
+@using VidsNet.Enums;
+@{
+    int i = 1;
+}   
+
+<div class="panel panel-default">
+    <div class="panel-heading">System messages 
+        <button type="button" class="btn btn-link" onclick="cleanMessages();">
+            <i class="glyphicon glyphicon-trash iconXsmall"></i>
+        </button>
+    </div>
+    @if(@Model.Messages.Count > 0) {
+        <table class="table table-bordered table-condensed" id="systemMessagesTable">
+            <thead>
+                <th class="text-center">#</th>
+                <th class="text-left">Message</th>
+                <th class="text-center">Time</th>
+                <th class="text-center">Delete</th>
+            </thead>
+            <tbody>
+                @foreach(SystemMessage message in @Model.Messages) {
+                    var alert = @HtmlHelpers.GetSeverity(message.Severity);
+                    <tr class="@alert" id="@string.Format("{0}_tr", @message.Id)">
+                        <td class="text-center verticalMiddle"><strong>@(i++)</strong></td>
+                        <td class="text-left col-md-8 verticalMiddle">
+                            @if(!string.IsNullOrWhiteSpace(message.LongMessage)) {
+                                <a href="#" class="btn btn-link" onclick="openMessage(@message.Id);">@message.Message</a>
+                            }
+                            else {
+                                <a href="#" class="btn btn-link">@message.Message</a>
+                            }
+                            
+                        </td>
+                        <td class="text-center verticalMiddle">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td class="text-center verticalMiddle">
+                            <a href="#" onclick="deleteMessage(@message.Id);">
+                                <span aria-hidden="true" class="glyphicon-remove-circle glyphicon"></span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+                
+            </tbody>
+        </table>
+    }
+    else {
+        <div class="panel-body">
+            <div class="alert alert-info">No system messages.</div>
+        </div>
+    }
+    
+</div>

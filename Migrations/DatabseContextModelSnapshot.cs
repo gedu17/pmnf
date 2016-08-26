@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using VidsNet.Models;
 using VidsNet.DataModels;
 
 namespace vidsnet.Migrations
@@ -15,6 +14,39 @@ namespace vidsnet.Migrations
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
+
+            modelBuilder.Entity("VidsNet.DataModels.BaseVirtualItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTime>("DeletedTime");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsViewed");
+
+                    b.Property<string>("Name");
+
+                    b.Property<int>("ParentId");
+
+                    b.Property<int>("RealItemId");
+
+                    b.Property<int>("Type");
+
+                    b.Property<int>("UserId");
+
+                    b.Property<DateTime>("ViewedTime");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VirtualItems");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("BaseVirtualItem");
+                });
 
             modelBuilder.Entity("VidsNet.Models.RealItem", b =>
                 {
@@ -43,6 +75,8 @@ namespace vidsnet.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("Description");
+
                     b.Property<string>("Name");
 
                     b.Property<string>("Value");
@@ -57,11 +91,15 @@ namespace vidsnet.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("LongMessage");
+
                     b.Property<string>("Message");
 
                     b.Property<int>("Read");
 
                     b.Property<int>("Severity");
+
+                    b.Property<DateTime>("Timestamp");
 
                     b.Property<int>("UserId");
 
@@ -82,6 +120,8 @@ namespace vidsnet.Migrations
                     b.Property<string>("Name");
 
                     b.Property<string>("Password");
+
+                    b.Property<string>("SessionHash");
 
                     b.HasKey("Id");
 
@@ -108,30 +148,22 @@ namespace vidsnet.Migrations
 
             modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.HasBaseType("VidsNet.DataModels.BaseVirtualItem");
 
-                    b.Property<DateTime>("DeletedTime");
 
-                    b.Property<bool>("IsDeleted");
+                    b.HasIndex("RealItemId");
 
-                    b.Property<bool>("IsSeen");
+                    b.ToTable("VirtualItem");
 
-                    b.Property<string>("Name");
+                    b.HasDiscriminator().HasValue("VirtualItem");
+                });
 
-                    b.Property<int>("ParentId");
-
-                    b.Property<int>("RealItemId");
-
-                    b.Property<DateTime>("SeenTime");
-
-                    b.Property<int>("Type");
-
-                    b.Property<int>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("VirtualItems");
+            modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
+                {
+                    b.HasOne("VidsNet.Models.RealItem", "RealItem")
+                        .WithMany()
+                        .HasForeignKey("RealItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
         }
     }

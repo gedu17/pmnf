@@ -15,7 +15,7 @@ namespace VidsNet.ViewModels
         {
             get
             {
-                var item = MenuItems.Items.Where(x => x.Url == CurrentUrl).FirstOrDefault();
+                var item = MenuItems.Items.Where(x => x.Name == ActiveMenuItem).FirstOrDefault();
                 if(item is MenuItem) {
                     return item.Name;
                 }

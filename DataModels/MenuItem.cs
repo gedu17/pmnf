@@ -1,3 +1,5 @@
+using VidsNet.Enums;
+
 namespace VidsNet.DataModels
 {
     public class MenuItem {
@@ -5,10 +7,12 @@ namespace VidsNet.DataModels
         public string Url {get;set;}
         public string Html {get;set;}
         public string OnClick {get;set;}
+        public LinkType ItemType {get;set;}
 
         public MenuItem() {
             Html = string.Empty;
             OnClick = string.Empty;
+            ItemType = LinkType.Both;
         }
     }
 }

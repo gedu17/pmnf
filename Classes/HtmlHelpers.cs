@@ -272,6 +272,30 @@ namespace VidsNet.Classes
             return div;
 
         }
+
+        public static string GetSeverity(Severity severity) {
+            var alert = string.Empty;
+            switch (severity)
+            {
+                case Severity.Info:
+                    alert = "alert-myInfo";
+                    break;
+                case Severity.Warning:
+                    alert = "alert-info";
+                    break;
+                case Severity.Error:
+                    alert = "alert-warning";
+                    break;
+                case Severity.Critical:
+                    alert = "alert-danger";
+                    break;  
+                default:
+                    break;
+            }
+            
+            return alert;
+        }
+
     }
     
 }

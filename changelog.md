@@ -1,5 +1,20 @@
 #VidsNET
 
+##2.2.0
+###Back-End
+- [x] Change login cookie expiry time to 2 weeks
+- [x] Log all actions in ItemController to SystemMessages
+- [x] Add LongMessage field to SystemMessages
+- [x] Add clean and delete system messages to UsersData
+- [x] Add systemmessages/get/{id} and systemmessages/getall routes
+- [x] Add ability to make menu items visible only from mobile or desktop
+
+###Front-End
+- [x] Implement clean system messages button
+- [x] Add modal popup with more information about system message
+- [x] Fix vertical centering in manage users table
+- [x] Add custom alert sytle for Severity.Info
+
 ##2.1.0
 ###Back-End
 - [x] Fix not redirecting from login page when already logged in
