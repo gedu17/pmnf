@@ -1,9 +1,7 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Linq;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VidsNet.DataModels;
@@ -18,74 +16,60 @@ namespace VidsNet.Controllers
     [TypeFilter(typeof(ExceptionFilter))]
     public class ItemController : BaseController
     {
-        private ILogger _logger;
-        private BaseDatabaseContext _db;
+        private DatabaseContext _db;
         private VideoViewer _viewer;
         private BaseUserRepository _userRepository;
-        public ItemController(ILoggerFactory logger, BaseDatabaseContext db, UserData userData, VideoViewer viewer, BaseUserRepository userRepository)
-         : base(userData) {
-            _logger = logger.CreateLogger("ItemsController");
-            _db = db;            
+        public ItemController(DatabaseContext db, UserData userData, VideoViewer viewer, BaseUserRepository userRepository)
+         : base(userData)
+        {
+            _db = db;
             _viewer = viewer;
             _userRepository = userRepository;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody]FrontEndItem frontEndItem) {
+        public async Task<IActionResult> Create([FromBody]FrontEndItem frontEndItem)
+        {
             /*{
                 "name": "NewFolder",
                 "Parent": 0
             }
             */
-            if(ModelState.IsValid) {
-                if(Constants.IsSqlite) {
-                    var item = new VirtualItemSqlite()
-                    {
-                        UserId = _user.Id,
-                        RealItemId = null,
-                        ParentId = frontEndItem.Parent,
-                        Name = frontEndItem.Name.Trim(),
-                        IsViewed = false,
-                        IsDeleted = false,
-                        Type = Item.Folder
-                    };
-
-                    _db.VirtualItems.Add(item);
-                    await _db.SaveChangesAsync();
-                }
-                else {
-                    var item = new VirtualItem()
-                    {
-                        UserId = _user.Id,
-                        RealItemId = null,
-                        ParentId = frontEndItem.Parent,
-                        Name = frontEndItem.Name.Trim(),
-                        IsViewed = false,
-                        IsDeleted = false,
-                        Type = Item.Folder
-                    };
-                    _db.VirtualItems.Add(item);
-                    await _db.SaveChangesAsync();
-
-                }
+            if (ModelState.IsValid)
+            {
+                var item = new VirtualItem()
+                {
+                    UserId = _user.Id,
+                    RealItemId = null,
+                    ParentId = frontEndItem.Parent,
+                    Name = frontEndItem.Name.Trim(),
+                    IsViewed = false,
+                    IsDeleted = false,
+                    Type = Item.Folder
+                };
+                _db.VirtualItems.Add(item);
+                await _db.SaveChangesAsync();
 
                 await _user.AddSystemMessage("New item succesfully created.", Severity.Debug);
                 return Ok();
-                
+
             }
-            
+
             await _user.AddSystemMessage("New item creation failed, modelstate is invalid.", Severity.Error);
             return NotFound();
         }
-        
+
         [HttpPut]
-        public async Task<IActionResult> Edit(int id, [FromBody]FrontEndItem frontEndItem) {
+        public async Task<IActionResult> Edit(int id, [FromBody]FrontEndItem frontEndItem)
+        {
             /* {
                 "name": "newName"
             }*/
-            if(ModelState.IsValid) {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.Name = frontEndItem.Name.Trim();
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
@@ -99,10 +83,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && !x.IsDeleted).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.DeletedTime = DateTime.Now;
                     item.IsDeleted = true;
                     _db.VirtualItems.Update(item);
@@ -116,10 +103,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UnDelete(int id) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> UnDelete(int id)
+        {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsDeleted).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.DeletedTime = DateTime.Now;
                     item.IsDeleted = false;
                     _db.VirtualItems.Update(item);
@@ -134,10 +124,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Viewed(int id) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> Viewed(int id)
+        {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && !x.IsViewed).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.ViewedTime = DateTime.Now;
                     item.IsViewed = true;
                     _db.VirtualItems.Update(item);
@@ -152,10 +145,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UnViewed(int id) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> UnViewed(int id)
+        {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id && x.IsViewed).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.ViewedTime = DateTime.Now;
                     item.IsViewed = false;
                     _db.VirtualItems.Update(item);
@@ -170,10 +166,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Move(int id, [FromBody]MoveItem move) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> Move(int id, [FromBody]MoveItem move)
+        {
+            if (ModelState.IsValid)
+            {
                 var item = _db.VirtualItems.Where(x => x.Id == id && x.UserId == _user.Id).FirstOrDefault();
-                if(item is BaseVirtualItem) {
+                if (item is VirtualItem)
+                {
                     item.ParentId = move.ParentId;
                     _db.VirtualItems.Update(item);
                     await _db.SaveChangesAsync();
@@ -181,7 +180,7 @@ namespace VidsNet.Controllers
                     return Ok();
                 }
             }
-            
+
             await _user.AddSystemMessage(string.Format("Item {0} moving to {1} failed, modelstate is invalid.", id, move.ParentId), Severity.Error);
             return NotFound();
         }
@@ -189,13 +188,17 @@ namespace VidsNet.Controllers
         [AllowAnonymous]
         [HttpGet]
         [Route("item/view/{session}/{id}/{name}")]
-        public async Task<IActionResult> View(Guid session, int id, string name) {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> View(Guid session, int id, string name)
+        {
+            if (ModelState.IsValid)
+            {
                 var user = _userRepository.GetUserBySessionHash(session.ToString());
-                if(user is User) {
+                if (user is User)
+                {
                     var result = await _viewer.View(id, user.Id, name, Request.Headers["Range"].FirstOrDefault());
 
-                    if(!string.IsNullOrWhiteSpace(result.ContentRange)) {
+                    if (!string.IsNullOrWhiteSpace(result.ContentRange))
+                    {
                         Response.Headers.Add("Content-Range", result.ContentRange);
                     }
 

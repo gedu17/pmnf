@@ -7,15 +7,15 @@
 @using System.IO;
 @model VidsNet.ViewModels.HomeViewModel
 @{
-    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
+    var items = (List<VirtualItem>)@Model.VirtualItems;
     int parentItemCount = items.AsQueryable().Where(x => x.IsViewed).Count();
 }
 
 @functions {   
-    string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems) {
+    string PrintListing(List<VirtualItem> items, List<RealItem> realItems) {
         var ret = new TagBuilder("div");
         int padding = 10;
-        List<BaseVirtualItem> it = items.Where(x => x.IsViewed).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        List<VirtualItem> it = items.Where(x => x.IsViewed).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
         var isLast = true;
         foreach(var item in it){              
             if(item.Type == Item.Folder) {
@@ -23,15 +23,8 @@
             }
             else {
                 var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
-                if(VidsNet.Constants.IsSqlite) {
-                    var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
-                    urlContext.Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)};
-                }
-                else {
-                    var tmp = (VirtualItem)item;
-                    urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
-                }
-
+                var tmp = (VirtualItem)item;
+                urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
                 ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), isLast, View.Viewed, 0));
             }
         }

@@ -7,12 +7,12 @@
 @using System.IO;
 @model VidsNet.ViewModels.HomeViewModel
 @{
-    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
+    var items = (List<VirtualItem>)@Model.VirtualItems;
     int parentItemCount = items.AsQueryable().Where(x => x.ParentId == 0 && !x.IsViewed && !x.IsDeleted).Count();
 }
 
 @functions {   
-    string PrintListing(List<BaseVirtualItem> items, List<RealItem> realItems, int parent, int level) {
+    string PrintListing(List<VirtualItem> items, List<RealItem> realItems, int parent, int level) {
         TagBuilder ret = null;
         if(parent != 0) {
             ret = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
@@ -23,7 +23,7 @@
         }
         
         int padding = level * 10;
-        List<BaseVirtualItem> it = items.Where(x => x.ParentId == parent && !x.IsViewed && !x.IsDeleted).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        List<VirtualItem> it = items.Where(x => x.ParentId == parent && !x.IsViewed && !x.IsDeleted).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
         for(int i = 0; i < it.Count; i++){
             var item = it[i];
             var isLast = false;
@@ -38,15 +38,8 @@
             }
             else {
                 var urlContext = new UrlRouteContext() { RouteName = "ItemView"};
-                if(VidsNet.Constants.IsSqlite) {
-                    var realItem = realItems.Where(x => x.Id == item.RealItemId).First();
-                    urlContext.Values = new {id = item.Id, session = Model.SessionHash, name = (item.Name + realItem.Extension)};
-                }
-                else {
-                    var tmp = (VirtualItem)item;
-                    urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
-                }
-
+                var tmp = (VirtualItem)item;
+                urlContext.Values = new {id = tmp.Id, session = Model.SessionHash, name = (tmp.Name + tmp.RealItem.Extension)};
                 ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), isLast));
             }
         }

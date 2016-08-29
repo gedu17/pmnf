@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using VidsNet.Models;
-
 namespace VidsNet.DataModels
 {
-    public class DatabaseContext : BaseDatabaseContext {
-        public new DbSet<VirtualItem> VirtualItems {get;set;}
+    public class DatabaseContext : DbContext {
+        public DbSet<Setting> Settings { get; set; }
+        public DbSet<User> Users {get;set;}
+        public DbSet<RealItem> RealItems {get;set;}
+        public DbSet<SystemMessage> SystemMessages {get;set;}
+        public DbSet<UserSetting> UserSettings {get;set;}
+        public DbSet<VirtualItem> VirtualItems {get;set;}
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            optionsBuilder.UseMySql(@"Server=localhost;database=vidsnet;uid=vidsnet;pwd=aEB0CytkQkfsOjp8eWod;");
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base (options)  {
+            base.Database.EnsureCreated();
         }
     }
 }

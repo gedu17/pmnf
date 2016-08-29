@@ -22,9 +22,6 @@ namespace vidsnet.Migrations
 
                     b.Property<DateTime>("DeletedTime");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired();
-
                     b.Property<bool>("IsDeleted");
 
                     b.Property<bool>("IsViewed");
@@ -44,8 +41,6 @@ namespace vidsnet.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("VirtualItems");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("BaseVirtualItem");
                 });
 
             modelBuilder.Entity("VidsNet.Models.RealItem", b =>

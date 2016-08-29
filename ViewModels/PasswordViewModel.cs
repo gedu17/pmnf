@@ -10,7 +10,6 @@ namespace VidsNet.ViewModels
 
         public string OldPassword {get;set;}
         public string NewPassword {get;set;}
-        public string ErrorMessage {get;set;}
 
         public override string ActiveMenuItem
         {

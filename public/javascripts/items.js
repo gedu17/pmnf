@@ -1,11 +1,11 @@
 function moveItem(id) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             openModal("Move", xhr.responseText, false);
 
-            $("#popupSave").on('click', function() {
-                var cb2 = function(xhr) {
-                    if(xhr.status === 200) {
+            $("#popupSave").on('click', function () {
+                var cb2 = function (xhr) {
+                    if (xhr.status === 200) {
                         var defer = jQuery.Deferred();
                         var promise = defer.promise();
                         p.then(updateVirtualView);
@@ -13,7 +13,7 @@ function moveItem(id) {
                     }
                     $("#popupSave").off('click');
                 };
-                var data = {ParentId: $("#parentfolder").val()};
+                var data = { ParentId: $("#parentfolder").val() };
                 sendQuery("/item/move/" + id, data, "PUT", cb2);
             });
         }
@@ -23,13 +23,13 @@ function moveItem(id) {
 }
 
 function editItem(id) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             openModal("Rename", xhr.responseText, false);
 
-            $("#popupSave").on('click', function() {
-                var cb2 = function(xhr) {
-                    if(xhr.status === 200) {
+            $("#popupSave").on('click', function () {
+                var cb2 = function (xhr) {
+                    if (xhr.status === 200) {
                         var defer = jQuery.Deferred();
                         var promise = defer.promise();
                         promise.then(updateVirtualView);
@@ -37,7 +37,7 @@ function editItem(id) {
                     }
                     $("#popupSave").off('click');
                 };
-                var data = {Name: $("#newname").val()};
+                var data = { Name: $("#newname").val() };
                 sendQuery("/item/edit/" + id, data, "PUT", cb2);
             });
         }
@@ -47,13 +47,13 @@ function editItem(id) {
 }
 
 function createFolder() {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             openModal("New folder", xhr.responseText, false);
 
-            $("#popupSave").on('click', function() {
-                var cb2 = function(xhr) {
-                    if(xhr.status === 200) {
+            $("#popupSave").on('click', function () {
+                var cb2 = function (xhr) {
+                    if (xhr.status === 200) {
                         var defer = jQuery.Deferred();
                         var promise = defer.promise();
                         promise.then(updateVirtualView);
@@ -61,7 +61,7 @@ function createFolder() {
                     }
                     $("#popupSave").off('click');
                 };
-                var data = { Name:$("#foldername").val(), Parent: $("#parentfolder").val() };
+                var data = { Name: $("#foldername").val(), Parent: $("#parentfolder").val() };
                 sendQuery("/item/create/", data, "POST", cb2);
             });
         }
@@ -71,8 +71,8 @@ function createFolder() {
 }
 
 function viewedItem(id, parent) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             setHide(id + "_div");
             setHide(id + "_content");
             decreaseParentCount(parent);
@@ -82,8 +82,8 @@ function viewedItem(id, parent) {
 }
 
 function deleteItem(id, parent) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             setHide(id + "_div");
             setHide(id + "_content");
             decreaseParentCount(parent);
@@ -93,8 +93,8 @@ function deleteItem(id, parent) {
 }
 
 function unviewedItem(id, parent) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             setHide(id + "_div");
             setHide(id + "_content");
             decreaseParentCount(parent);
@@ -104,8 +104,8 @@ function unviewedItem(id, parent) {
 }
 
 function undeleteItem(id, parent) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             setHide(id + "_div");
             setHide(id + "_content");
             decreaseParentCount(parent);
@@ -115,8 +115,8 @@ function undeleteItem(id, parent) {
 }
 
 function rescan() {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             var defer = jQuery.Deferred();
             var promise = defer.promise();
             promise.then(updateVirtualView).then(updateSystemMessageCount);

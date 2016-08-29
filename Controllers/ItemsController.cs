@@ -15,33 +15,37 @@ namespace VidsNet.Controllers
     [Authorize]
     public class ItemsController : BaseController
     {
-        private ILogger _logger;
         private Scanner _scanner;
-        private BaseDatabaseContext _db;
-        public ItemsController(ILoggerFactory logger, Scanner scanner, UserData userData, BaseDatabaseContext db)
-         : base(userData) {
-            _logger = logger.CreateLogger("HomeController");
+        private DatabaseContext _db;
+        public ItemsController(Scanner scanner, UserData userData, DatabaseContext db)
+         : base(userData)
+        {
             _scanner = scanner;
             _db = db;
         }
 
-        
+
         [HttpGet]
-        public async Task<IActionResult> Scan() {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> Scan()
+        {
+            if (ModelState.IsValid)
+            {
                 var data = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList());
                 var newItemsHtml = string.Empty;
-                if(data.NewItemsCount > 0 || data.DeletedItemsCount > 0) {
+                if (data.NewItemsCount > 0 || data.DeletedItemsCount > 0)
+                {
                     newItemsHtml = HtmlHelpers.GenerateScanResult(data);
                 }
 
-                if(data.NewItemsCount > 0) {
-                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info, newItemsHtml); 
+                if (data.NewItemsCount > 0)
+                {
+                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info, newItemsHtml);
                 }
-                
-                if(data.DeletedItemsCount > 0) {
+
+                if (data.DeletedItemsCount > 0)
+                {
                     await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info, newItemsHtml);
-                }            
+                }
                 return Ok();
             }
             return NotFound();

@@ -1,0 +1,10 @@
+{
+    "Database": {
+        "Type": "Sqlite",
+        "ConnectionString": "Filename=./data.db"
+    },
+    "Connectivity": {
+        "OutPort": 8080,
+        "BindLocalhost": false
+    }
+}

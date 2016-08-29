@@ -5,8 +5,9 @@ using VidsNet.Classes;
 using VidsNet.Enums;
 
 namespace VidsNet.Filters
-{    
-    public class ExceptionFilter : ExceptionFilterAttribute {
+{
+    public class ExceptionFilter : ExceptionFilterAttribute
+    {
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IModelMetadataProvider _modelMetadataProvider;
         private UserData _userData;

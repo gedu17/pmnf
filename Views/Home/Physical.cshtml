@@ -7,7 +7,7 @@
 @using System.IO;
 @{
     Layout = "~/Views/Shared/Layout.cshtml";
-    var items = (List<BaseVirtualItem>)@Model.VirtualItems;
+    var items = (List<VirtualItem>)@Model.VirtualItems;
     int parentItemCount = items.AsQueryable().Where(x => x.ParentId == 0).Count();
 }
 
@@ -17,7 +17,7 @@
         return items.Where(x => x.UserPathId == userPathId && x.ParentId == 0).Count();
     }
 
-    string PrintListing(List<BaseVirtualItem> virtualItems, List<RealItem> realItems, int parent, int level) {
+    string PrintListing(List<VirtualItem> virtualItems, List<RealItem> realItems, int parent, int level) {
         TagBuilder ret = null;
         if(parent != 0) {
             ret = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {

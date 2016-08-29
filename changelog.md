@@ -1,10 +1,20 @@
 #VidsNET
 
+##2.4.0
+###Back-End
+- [x] Add IsInstalled filter to check whether any users exists, if not create admin user
+- [x] Fix code style
+- [x] Add setting to bind on loopback addresses or not
+- [x] Add automatic binding to all available ip addresses
+- [x] Merge two database contexts to one reducing code complexity
+- [x] Add support for settings file
+- [x] Read database and connectivity settings from file
+
 ##2.3.0
 ###Back-End
 - [x] Add longMessage when scanning items
 - [x] Set RealItemId column nullable in VirtualItems table
-- [x] Add Filter to check wether user's Session hash matches the one in the database
+- [x] Add Filter to check whether user's Session hash matches the one in the database
 - [x] Fix BaseScanner bug where sometimes ScanItem entries would be null
 
 ###Front-End
@@ -85,7 +95,7 @@
 ##1.8.0
 ###Back-End
 - [x] Convert username to lowercase and trim whitespaces when entered
-- [x] Add different database contexts depending on wether its Sqlite or any other dbms
+- [x] Add different database contexts depending on whether its Sqlite or any other dbms
 - [x] Add IsSqlite boolean constant
 - [x] Rename Seen to Viewed in VirtualItems table
 - [x] Implement password hashing
@@ -93,7 +103,7 @@
 - [x] Add AddSystemMessage and SetSystemMessageAsRead to UserData class
 - [x] Add SessionHash to User model
 - [x] Add SessionHash to view urls
-- [x] Check wether SessionHash matches and if user has requested video in his list
+- [x] Check whether SessionHash matches and if user has requested video in his list
 - [x] Add UserPath rescan when user paths are updated
 - [x] Fix return url not working when logging in
 

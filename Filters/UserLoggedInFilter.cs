@@ -12,9 +12,9 @@ namespace VidsNet.Filters
     public class UserLoggedInFilter : IResourceFilter {
 
         private UserData _userData;
-        private BaseDatabaseContext _db;
+        private DatabaseContext _db;
 
-        public UserLoggedInFilter(UserData userData, BaseDatabaseContext db)
+        public UserLoggedInFilter(UserData userData, DatabaseContext db)
         {
             _userData = userData;
             _db = db;

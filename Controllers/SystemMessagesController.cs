@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using VidsNet.Scanners;
 using System.Threading.Tasks;
 using VidsNet.DataModels;
 using VidsNet.Classes;
@@ -18,11 +17,10 @@ namespace VidsNet.Controllers
     [Authorize]
     public class SystemMessagesController : BaseController
     {
-        private ILogger _logger;
-        private BaseDatabaseContext _db;
-        public SystemMessagesController(ILoggerFactory logger, UserData userData, BaseDatabaseContext db)
-         : base(userData) {
-            _logger = logger.CreateLogger("SystemMessagesController");
+        private DatabaseContext _db;
+        public SystemMessagesController(UserData userData, DatabaseContext db)
+         : base(userData)
+        {
             _db = db;
         }
 
@@ -37,7 +35,8 @@ namespace VidsNet.Controllers
                 var oldMessages = new List<SystemMessage>();
                 foreach (var message in messages)
                 {
-                    var sm = new SystemMessage() {
+                    var sm = new SystemMessage()
+                    {
                         Id = message.Id,
                         UserId = message.Id,
                         Message = message.Message,
@@ -48,8 +47,8 @@ namespace VidsNet.Controllers
                     };
                     oldMessages.Add(sm);
                 }
-                
-                
+
+
                 await _user.SetSystemMessagesAsRead();
                 var model = new SystemMessagesViewModel(_user) { Messages = oldMessages };
                 return View(model);
@@ -59,10 +58,13 @@ namespace VidsNet.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get(int id) {
-            if(ModelState.IsValid) {
+        public IActionResult Get(int id)
+        {
+            if (ModelState.IsValid)
+            {
                 var message = _db.SystemMessages.Where(x => x.UserId == _user.Id && x.Id == id).FirstOrDefault();
-                if(message is SystemMessage) {
+                if (message is SystemMessage)
+                {
                     return Ok(message.LongMessage);
                 }
             }
@@ -71,8 +73,10 @@ namespace VidsNet.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetCount() {
-            if(ModelState.IsValid) {
+        public IActionResult GetCount()
+        {
+            if (ModelState.IsValid)
+            {
                 return Ok(_user.GetSystemMessageCount());
             }
 
@@ -80,8 +84,10 @@ namespace VidsNet.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Clean() {
-            if(ModelState.IsValid) {
+        public async Task<IActionResult> Clean()
+        {
+            if (ModelState.IsValid)
+            {
                 await _user.CleanSystemMessages();
                 return Ok();
             }
@@ -90,9 +96,12 @@ namespace VidsNet.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id) {
-            if(ModelState.IsValid) {
-                if(await _user.DeleteSystemMessage(id)) {
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _user.DeleteSystemMessage(id))
+                {
                     return Ok();
                 }
             }

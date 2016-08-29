@@ -4,7 +4,7 @@
 @model VidsNet.ViewModels.MoveViewModel
 @functions {
     void GenerateFolders(TagBuilder selectTag, int parent, string parentName) {
-        List<BaseVirtualItem> folders = @Model.Items.Where(x => x.ParentId == parent && x.Type == Item.Folder).ToList();
+        List<VirtualItem> folders = @Model.Items.Where(x => x.ParentId == parent && x.Type == Item.Folder).ToList();
         foreach(var folder in folders) {
             var folderDict = new Dictionary<string, string>(){ { "value", folder.Id.ToString()}};
             if(folder.Id == Model.CurrentItem) {
@@ -13,7 +13,6 @@
             var newParentName = string.Format("{0}/{1}", parentName, folder.Name);
             var option = HtmlHelpers.GenerateItem("option", new List<string>(), folderDict, null, newParentName);
             selectTag.InnerHtml.AppendHtml(option);
-            //selectTag.InnerHtml.AppendHtml(GenerateFolders(selectTag, folder.Id, level + 1));
             GenerateFolders(selectTag, folder.Id, newParentName);
         }
     }

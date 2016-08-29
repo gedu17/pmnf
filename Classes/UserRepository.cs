@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using VidsNet.Interfaces;
 using System.Linq;
 using VidsNet.Models;
 using VidsNet.Enums;
@@ -10,15 +9,15 @@ using VidsNet.ViewModels;
 using VidsNet.DataModels;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Runtime.CompilerServices;
 
 namespace VidsNet.Classes
 {
     public class UserRepository : BaseUserRepository
     {
         private List<User> _users;
-        private BaseDatabaseContext _db;
-        public UserRepository(BaseDatabaseContext db) {
+        private DatabaseContext _db;
+        public UserRepository(DatabaseContext db)
+        {
             _db = db;
             _users = new List<User>();
             _users.AddRange(_db.Users.ToList());
@@ -29,22 +28,26 @@ namespace VidsNet.Classes
             username = username.ToLower().Trim();
             password = password.Trim();
             var user = _users.Where(x => x.Name.ToLower() == username).FirstOrDefault();
-            if(user is User){
+            if (user is User)
+            {
                 var hash = Convert.FromBase64String(user.Password);
                 var salt = GetSaltFromHashedPassword(hash);
                 var hashedPassword = GetPasswordFromHashedPassword(hash);
                 var checkedPassword = GetPasswordHash(password, salt);
-                
-                return PasswordsEqual(hashedPassword, checkedPassword);               
+
+                return PasswordsEqual(hashedPassword, checkedPassword);
             }
-            else {
+            else
+            {
                 return false;
             }
         }
 
-        public override async Task<bool> ChangePassword(int userId, string password) {
+        public override async Task<bool> ChangePassword(int userId, string password)
+        {
             var user = _db.Users.Where(x => x.Id == userId).First();
-            if(user is User) {
+            if (user is User)
+            {
                 user.Password = Convert.ToBase64String(CreatePasswordHash(password));
                 _db.Users.Update(user);
                 await _db.SaveChangesAsync();
@@ -53,7 +56,8 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public override List<User> GetUsers() {
+        public override List<User> GetUsers()
+        {
             return _db.Users.ToList();
         }
 
@@ -61,7 +65,8 @@ namespace VidsNet.Classes
         {
             var user = _users.FirstOrDefault(x => x.Name == userName);
 
-            if(user == null) {
+            if (user == null)
+            {
                 return null;
             }
 
@@ -89,7 +94,8 @@ namespace VidsNet.Classes
         public override async Task<bool> SetActive(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
-            if(user is User) {
+            if (user is User)
+            {
                 user.Active = value;
                 _db.Users.Update(user);
                 await _db.SaveChangesAsync();
@@ -101,7 +107,8 @@ namespace VidsNet.Classes
         public override async Task<bool> SetAdmin(int userId, int value)
         {
             var user = _db.Users.Where(x => x.Id == userId).FirstOrDefault();
-            if(user is User) {
+            if (user is User)
+            {
                 user.Level = value == 1 ? 9 : 1;
                 _db.Users.Update(user);
                 await _db.SaveChangesAsync();
@@ -113,10 +120,16 @@ namespace VidsNet.Classes
         public override async Task<bool> CreateUser(NewUserViewModel user)
         {
             user.Name = user.Name.ToLower().Trim();
-            if(!_db.Users.Any(x => x.Name.ToLower() == user.Name) && !string.IsNullOrWhiteSpace(user.Name) 
-            && !string.IsNullOrWhiteSpace(user.Password)) {
-                var newUser = new User() { Name = user.Name, Password = Convert.ToBase64String(CreatePasswordHash(user.Password.Trim())),
-                 Level = user.Level > 1 ? 9 : 1, Active = 1 };
+            if (!_db.Users.Any(x => x.Name.ToLower() == user.Name) && !string.IsNullOrWhiteSpace(user.Name)
+            && !string.IsNullOrWhiteSpace(user.Password))
+            {
+                var newUser = new User()
+                {
+                    Name = user.Name,
+                    Password = Convert.ToBase64String(CreatePasswordHash(user.Password.Trim())),
+                    Level = user.Level > 1 ? 9 : 1,
+                    Active = 1
+                };
                 _db.Users.Add(newUser);
                 await _db.SaveChangesAsync();
                 return true;
@@ -124,11 +137,14 @@ namespace VidsNet.Classes
             return false;
         }
 
-        public override async Task<bool> DeleteUser(int id) {
+        public override async Task<bool> DeleteUser(int id)
+        {
             var user = _db.Users.Where(x => x.Id == id).FirstOrDefault();
-            if(user is User) {
+            if (user is User)
+            {
                 var userPaths = _db.UserSettings.Where(x => x.UserId == id && x.Name == "path").ToList();
-                foreach(var userPath in userPaths) {
+                foreach (var userPath in userPaths)
+                {
                     var realItems = _db.RealItems.Where(x => x.UserPathId == userPath.Id).ToList();
                     _db.RealItems.RemoveRange(realItems);
                 }
@@ -146,12 +162,13 @@ namespace VidsNet.Classes
                 await _db.SaveChangesAsync();
                 return true;
             }
-            
+
             return false;
         }
 
         public override byte[] GetSaltFromHashedPassword(byte[] password)
-        {;
+        {
+            ;
             var salt = new byte[Constants.SaltSize];
             Buffer.BlockCopy(password, 0, salt, 0, Constants.SaltSize);
 
@@ -183,9 +200,10 @@ namespace VidsNet.Classes
              Constants.PasswordSize);
         }
 
-        public override byte[] GetSalt() {
-            var salt = new byte [Constants.SaltSize];
-            using(var rng = RandomNumberGenerator.Create())
+        public override byte[] GetSalt()
+        {
+            var salt = new byte[Constants.SaltSize];
+            using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);
             }

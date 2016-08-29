@@ -1,11 +1,15 @@
 {
-  "version": "2.2.0",
+  "version": "2.4.0",
   "buildOptions": {
     "debugType": "portable",
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
   "dependencies": {
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "Pomelo.EntityFrameworkCore.MySql": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
     "Microsoft.AspnetCore.Identity.EntityFrameworkCore": "1.0.0",

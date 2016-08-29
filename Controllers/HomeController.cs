@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using VidsNet.ViewModels;
@@ -16,44 +15,36 @@ namespace VidsNet.Controllers
     [Authorize]
     public class HomeController : BaseController
     {
-        private ILogger _logger;
-        private BaseDatabaseContext _db;
-        public HomeController(ILoggerFactory logger, UserData userData, BaseDatabaseContext db)
-         : base(userData) {
-            _logger = logger.CreateLogger("HomeController");
+        private DatabaseContext _db;
+        public HomeController(UserData userData, DatabaseContext db)
+         : base(userData)
+        {
             _db = db;
         }
 
-        
+
         public async Task<IActionResult> Index()
         {
-            if(Constants.IsSqlite) {
-                var virtualItems = await _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToListAsync();
-                var realItems = await _db.RealItems.ToListAsync();
-                var model = new HomeViewModel(_user) {VirtualItems = virtualItems, RealItems = realItems };
-                return View(model);
-            }
-            else {
-                var virtualItems = await _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToListAsync();
-                //Workaround to force EF load RealItem objects into VirtualItems
-                var realItems = await _db.RealItems.ToListAsync();
+            var virtualItems = await _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToListAsync();
+            //Workaround to force EF load RealItem objects into VirtualItems
+            var realItems = await _db.RealItems.ToListAsync();
 
-                var model = new HomeViewModel(_user) {VirtualItems = virtualItems};
-                return View(model);
-            }
-            
+            var model = new HomeViewModel(_user) { VirtualItems = virtualItems };
+            return View(model);
         }
 
         [Route("physical")]
-        public IActionResult Physical() {
-            var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+        public IActionResult Physical()
+        {
+            var virtualItems = _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
             var paths = _user.UserSettings.Where(x => x.Name == "path").ToDictionary(y => y.Id, y => y.Value);
-            var model = new PhysicalViewModel(_user) {VirtualItems = virtualItems, RealItems = _db.RealItems.ToList(), Paths = paths};
+            var model = new PhysicalViewModel(_user) { VirtualItems = virtualItems, RealItems = _db.RealItems.ToList(), Paths = paths };
             return View("Physical", model);
         }
 
         [Route("error")]
-        public IActionResult Error() {
+        public IActionResult Error()
+        {
             return Error();
         }
     }

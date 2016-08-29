@@ -1,5 +1,5 @@
 function setError(errid, succid, msg) {
-    if(!$("#" + succid).hasClass("hide")) {
+    if (!$("#" + succid).hasClass("hide")) {
         $("#" + succid).addClass("hide");
     }
     $("#" + errid).removeClass("hide");
@@ -7,7 +7,7 @@ function setError(errid, succid, msg) {
 }
 
 function setSuccess(errid, succid, msg) {
-    if(!$("#" + errid).hasClass("hide")) {
+    if (!$("#" + errid).hasClass("hide")) {
         $("#" + errid).addClass("hide");
     }
     $("#" + succid).removeClass("hide");
@@ -15,7 +15,7 @@ function setSuccess(errid, succid, msg) {
 }
 
 function setHide(id) {
-     if(!$("#" + id).hasClass("hide")) {
+    if (!$("#" + id).hasClass("hide")) {
         $("#" + id).addClass("hide");
     }
 }
@@ -31,7 +31,7 @@ function sendQuery(url, data, method, callback) {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
         method: method
-    }).complete(function(xhr, textStatus) {
+    }).complete(function (xhr, textStatus) {
         callback(xhr);
     });
 }
@@ -43,7 +43,7 @@ function clearForm(id) {
 function openModal(title, text, hideSave) {
     $("#popupTitle").text(title);
     $("#popupBody").html(text);
-    if(hideSave === true){
+    if (hideSave === true) {
         setHide("popupSave");
     }
     else {
@@ -60,13 +60,13 @@ function updatePopovers() {
 }
 
 function decreaseParentCount(parent) {
-    if(parseInt(parent) === 0) {
+    if (parseInt(parent) === 0) {
         var count = parseInt($("#parentCount").text());
-        $("#parentCount").text(count-1);
+        $("#parentCount").text(count - 1);
     }
     else {
         var count = parseInt($("#" + parent + "_count").text());
-        $("#" + parent + "_count").text(count-1);
+        $("#" + parent + "_count").text(count - 1);
     }
 }
 
@@ -82,10 +82,10 @@ function updateContent(content) {
 function GetLoadingIcon(size) {
     //Size in pixels - 30
     var spinnerSize = size;
-    if(typeof(size) === "undefined") {
+    if (typeof (size) === "undefined") {
         spinnerSize = 48;
     }
 
-    return "<div class=\"loadingCenter\" style=\"font-size: "+size+"px;\"><span class=\"glyphicon glyphicon-refresh glyphicon-refresh-animate\"></span></div>";
+    return "<div class=\"loadingCenter\" style=\"font-size: " + size + "px;\"><span class=\"glyphicon glyphicon-refresh glyphicon-refresh-animate\"></span></div>";
 
 }

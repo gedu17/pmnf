@@ -1,6 +1,6 @@
 function openMessage(id) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             openModal("System message", xhr.responseText, true);
             setHide(id + "_icon");
         }
@@ -10,10 +10,10 @@ function openMessage(id) {
 }
 
 function cleanMessages() {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
-            var cb2 = function(xhr2) {
-                if(xhr2.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
+            var cb2 = function (xhr2) {
+                if (xhr2.status === 200) {
                     updateContent(xhr2.responseText);
                 }
             };
@@ -25,8 +25,8 @@ function cleanMessages() {
 }
 
 function deleteMessage(id) {
-    var cb = function(xhr) {
-        if(xhr.status === 200) {
+    var cb = function (xhr) {
+        if (xhr.status === 200) {
             setHide(id + "_tr");
         }
     };

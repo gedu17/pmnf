@@ -1,0 +1,10 @@
+{
+    "Database": {
+        "Type": "Mysql",
+        "ConnectionString": "Server=localhost;database=vidsnet;uid=vidsnet;pwd=aEB0CytkQkfsOjp8eWod;"
+    },
+    "Connectivity": {
+        "OutPort": 8080,
+        "BindLocalhost": false
+    }
+}

@@ -11,26 +11,42 @@ using VidsNet.DataModels;
 using VidsNet.Enums;
 using VidsNet.Classes;
 using VidsNet.Filters;
+using Microsoft.Extensions.Configuration;
+using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace VidsNet
 {
     public class Startup
     {
+        IConfigurationRoot Configuration;
+        public Startup(IHostingEnvironment env) {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("settings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+                
+            Configuration = builder.Build();
+        }
+
         public void ConfigureServices(IServiceCollection services){
             services.AddRouting();
             services.AddLogging();
-            
+            services.AddOptions();
 
-            if(Constants.IsSqlite) {
-                services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContextSqlite>();
-                services.AddDbContext<DatabaseContextSqlite>();
-                services.AddSingleton<BaseDatabaseContext, DatabaseContextSqlite>(); 
+            var databaseType = Configuration.GetSection("Database:Type").Value;
+            var connectionString = Configuration.GetSection("Database:ConnectionString").Value;
+            var dbEnum = (Database)Enum.Parse(typeof(Database), databaseType);
+
+            if(dbEnum == Database.Sqlite){
+                services.AddEntityFrameworkSqlite();
+                services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
             }
-            else {
-                services.AddEntityFrameworkSqlite().AddDbContext<DatabaseContext>();
-                services.AddDbContext<DatabaseContext>();
-                services.AddSingleton<BaseDatabaseContext, DatabaseContext>(); 
+            else {              
+                services.AddEntityFrameworkMySql();
+                services.AddDbContext<DatabaseContext>(options => options.UseMySql(connectionString));
             }
+            services.AddSingleton<DatabaseContext, DatabaseContext>();
             
             services.AddSession(options => {
                 options.CookieName = ".VidsNet.Session";
@@ -47,17 +63,18 @@ namespace VidsNet
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");          
             services.AddMvc( options => {
                 options.Filters.Add(typeof(UserLoggedInFilter));
+                options.Filters.Add(typeof(IsInstalledFilter));
             });
 
             services.AddScoped<BaseUserRepository, UserRepository>();
             services.AddSingleton<UserData, UserData>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IConfiguration>(Configuration);
 
             services.AddTransient<BaseScanner, BaseScanner>();
             services.AddTransient<Scanner, Scanner>();
             services.AddTransient<Video, Video>();
             services.AddTransient<Subtitle, Subtitle>();
-            //services.AddTransient<UserData, UserData>();
             services.AddTransient<VideoViewer, VideoViewer>();
         }
 

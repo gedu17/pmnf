@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using VidsNet.Classes;
-using VidsNet.DataModels;
 using VidsNet.Models;
 
 namespace VidsNet.ViewModels
@@ -9,7 +8,7 @@ namespace VidsNet.ViewModels
     {
 
         public PhysicalViewModel(UserData userData) : base(userData) {
-            VirtualItems = new List<BaseVirtualItem>();
+            VirtualItems = new List<VirtualItem>();
             RealItems = new List<RealItem>();
             Paths = new Dictionary<int,string>();
         }
@@ -22,7 +21,7 @@ namespace VidsNet.ViewModels
             }
         }
 
-        public List<BaseVirtualItem> VirtualItems {get;set;}
+        public List<VirtualItem> VirtualItems {get;set;}
         public Dictionary<int, string> Paths {get;set;} 
         public List<RealItem> RealItems {get;set;}
     }
