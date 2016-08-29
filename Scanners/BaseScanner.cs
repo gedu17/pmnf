@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VidsNet.Classes;
 using VidsNet.DataModels;
@@ -47,14 +46,17 @@ namespace VidsNet.Scanners
             var dirs = di.GetDirectories();
             var items = new List<ScanItem>();
             var item = new ScanItem() { Path = userPath, Type = Item.Folder, UserPathId = userPathId };
-            Parallel.ForEach(dirs, dir => {
+            
+            foreach (var dir in dirs)
+            {
                 if(!IsHiddenItem(dir.Name, ignoreHiddenFiles)){ 
-                    item.Children.AddRange(Scan(dir.FullName, userPathId, conditions, ignoreHiddenFiles));
-                }              
-            });
+                    var tmp = Scan(dir.FullName, userPathId, conditions, ignoreHiddenFiles);
+                    item.Children.AddRange(tmp);
+                }    
+            }
             
             var files = di.GetFiles();
-            Parallel.ForEach(files, file => {
+            foreach(var file in files) {
                 if(!IsHiddenItem(file.Name, ignoreHiddenFiles)){ 
                     foreach(var condition in conditions) {
                         var check = condition.CheckType(file.Name);
@@ -65,7 +67,8 @@ namespace VidsNet.Scanners
                         }
                     }
                 }
-            });
+            }
+
             items.Add(item);
             return items;
         }
@@ -75,8 +78,10 @@ namespace VidsNet.Scanners
                 throw new ArgumentException("userPaths cannot be empty");
             }
 
-            var items = new List<ScanItem>();
-            Parallel.ForEach(userPaths, userPath => items.AddRange(Scan(userPath.Value, userPath.Id, conditions, ignoreHiddenFiles)));  
+            var items = new List<ScanItem>(); 
+            foreach(var userPath in userPaths) {
+                items.AddRange(Scan(userPath.Value, userPath.Id, conditions, ignoreHiddenFiles));
+            }
 
             return Sort(items);        
         }
@@ -86,30 +91,21 @@ namespace VidsNet.Scanners
                 throw new ArgumentException("userPaths cannot be empty");
             }
             var items = new List<ScanItem>();
-            Parallel.ForEach(userPaths, userPath => {
-                var scannedItems = Scan(userPath, 0, conditions, ignoreHiddenFiles);
-                if(scannedItems == null) {
-                    _logger.LogCritical("SCANNED ITEMS = NULL");
-                    
-                    items.Add(new ScanItem() { Path = userPath, Type = Item.Folder, UserPathId = 0, WriteVirtualItem = false  });
-                }
-                else {
-                    items.AddRange(scannedItems);
-                }
-            });   
+            foreach (var userPath in userPaths)
+            {
+                items.AddRange(Scan(userPath, 0, conditions, ignoreHiddenFiles));
+            }
 
             return Sort(items);        
         }
 
         public List<ScanItem> Sort(List<ScanItem> items) {
             if(items.Count > 0) {
-                items = items.Where(x => (x != null)).OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                items = items.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
                 for(int i = 0; i < items.Count; i++) {
-                    if(items[i] != null && items[i].Children != null) {
-                        items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
-                        for(int j = 0; j < items[i].Children.Count; j++) {
-                            items[i].Children[j].Children = Sort(items[i].Children[j].Children);
-                        }
+                    items[i].Children = items[i].Children.OrderBy(x => x.Type).ThenBy(x => x.Path).ToList();
+                    for(int j = 0; j < items[i].Children.Count; j++) {
+                        items[i].Children[j].Children = Sort(items[i].Children[j].Children);
                     }
                 }
             }

@@ -6,7 +6,10 @@ function moveItem(id) {
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {
                     if(xhr.status === 200) {
-                        updateVirtualView();
+                        var defer = jQuery.Deferred();
+                        var promise = defer.promise();
+                        p.then(updateVirtualView);
+                        defer.resolve();
                     }
                     $("#popupSave").off('click');
                 };
@@ -27,7 +30,10 @@ function editItem(id) {
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {
                     if(xhr.status === 200) {
-                        updateVirtualView();
+                        var defer = jQuery.Deferred();
+                        var promise = defer.promise();
+                        promise.then(updateVirtualView);
+                        defer.resolve();
                     }
                     $("#popupSave").off('click');
                 };
@@ -48,7 +54,10 @@ function createFolder() {
             $("#popupSave").on('click', function() {
                 var cb2 = function(xhr) {
                     if(xhr.status === 200) {
-                        updateVirtualView();
+                        var defer = jQuery.Deferred();
+                        var promise = defer.promise();
+                        promise.then(updateVirtualView);
+                        defer.resolve();
                     }
                     $("#popupSave").off('click');
                 };
@@ -108,11 +117,14 @@ function undeleteItem(id, parent) {
 function rescan() {
     var cb = function(xhr) {
         if(xhr.status === 200) {
-            updateVirtualView();
-            //TODO: Update systemMessages here !
+            var defer = jQuery.Deferred();
+            var promise = defer.promise();
+            promise.then(updateVirtualView).then(updateSystemMessageCount);
+            defer.resolve();
         }
     };
 
     $("#contentBox").empty();
+    $("#contentBox").html(GetLoadingIcon(48));
     sendQuery("/items/scan/", null, "GET", cb);
 }

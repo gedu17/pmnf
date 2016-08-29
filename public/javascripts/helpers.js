@@ -78,3 +78,14 @@ function updateContent(content) {
     var txt = content.replace(new RegExp("&lt;", 'g'), "<").replace(new RegExp("&gt;", 'g'), ">");
     $("#contentBox").html(txt);
 }
+
+function GetLoadingIcon(size) {
+    //Size in pixels - 30
+    var spinnerSize = size;
+    if(typeof(size) === "undefined") {
+        spinnerSize = 48;
+    }
+
+    return "<div class=\"loadingCenter\" style=\"font-size: "+size+"px;\"><span class=\"glyphicon glyphicon-refresh glyphicon-refresh-animate\"></span></div>";
+
+}

@@ -8,9 +8,10 @@ using VidsNet.DataModels;
 namespace vidsnet.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabseContextModelSnapshot : ModelSnapshot
+    [Migration("20160829111910_2.3.0_Initial")]
+    partial class _230_Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
@@ -33,7 +34,7 @@ namespace vidsnet.Migrations
 
                     b.Property<int>("ParentId");
 
-                    b.Property<int>("RealItemId");
+                    b.Property<int?>("RealItemId");
 
                     b.Property<int>("Type");
 
@@ -162,8 +163,7 @@ namespace vidsnet.Migrations
                 {
                     b.HasOne("VidsNet.Models.RealItem", "RealItem")
                         .WithMany()
-                        .HasForeignKey("RealItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("RealItemId");
                 });
         }
     }

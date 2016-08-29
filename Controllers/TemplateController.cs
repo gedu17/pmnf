@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,7 @@ namespace VidsNet.Controllers
 
         public IActionResult ViewedItems() {
             if(ModelState.IsValid) {
-                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id && x.IsViewed).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
                 var realItems = _db.RealItems.ToList();
                 var model = new HomeViewModel(_user) {VirtualItems = virtualItems, RealItems = realItems };
                 return View(model);
@@ -60,7 +61,7 @@ namespace VidsNet.Controllers
 
         public IActionResult DeletedItems() {
             if(ModelState.IsValid) {
-                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id && x.IsDeleted).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
                 var realItems = _db.RealItems.ToList();
                 var model = new HomeViewModel(_user) {VirtualItems = virtualItems, RealItems = realItems };
                 return View(model);
@@ -89,6 +90,23 @@ namespace VidsNet.Controllers
             }
 
             return NotFound();
+        }
+
+        public IActionResult SMBadge(int id) {
+            ViewBag.Count = id;
+            return View("Badge");
+        }
+
+        public IActionResult ImportantSystemMessages() {
+            var messages = _db.SystemMessages.Where(x => x.UserId == _user.Id && x.Severity >= Severity.Info).OrderByDescending(y => y.Timestamp).ToList();
+            var model = new SystemMessagesViewModel(_user) { Messages = messages }; 
+            return PartialView("SystemMessagesList", model);
+        }
+
+        public IActionResult AllSystemMessages() {
+            var messages = _db.SystemMessages.Where(x => x.UserId == _user.Id).OrderByDescending(y => y.Timestamp).ToList();
+            var model = new SystemMessagesViewModel(_user) { Messages = messages, ListingType = 1 }; 
+            return PartialView("SystemMessagesList", model);
         }
     }
 }

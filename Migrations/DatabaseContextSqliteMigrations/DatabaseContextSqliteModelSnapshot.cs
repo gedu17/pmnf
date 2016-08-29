@@ -33,7 +33,7 @@ namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
 
                     b.Property<int>("ParentId");
 
-                    b.Property<int>("RealItemId");
+                    b.Property<int?>("RealItemId");
 
                     b.Property<int>("Type");
 

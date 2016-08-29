@@ -8,11 +8,14 @@ namespace VidsNet.DataModels
         public string Html {get;set;}
         public string OnClick {get;set;}
         public LinkType ItemType {get;set;}
+        public string Id {get;set;}
+        public int Badge {get;set;}
 
         public MenuItem() {
             Html = string.Empty;
             OnClick = string.Empty;
             ItemType = LinkType.Both;
+            Badge = 0;
         }
     }
 }

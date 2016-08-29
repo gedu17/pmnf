@@ -10,7 +10,6 @@ using VidsNet.DataModels;
 using VidsNet.Models;
 using VidsNet.Enums;
 using VidsNet.Classes;
-using VidsNet.Interfaces;
 using VidsNet.Filters;
 
 namespace VidsNet.Controllers
@@ -43,7 +42,7 @@ namespace VidsNet.Controllers
                     var item = new VirtualItemSqlite()
                     {
                         UserId = _user.Id,
-                        RealItemId = 0,
+                        RealItemId = null,
                         ParentId = frontEndItem.Parent,
                         Name = frontEndItem.Name.Trim(),
                         IsViewed = false,
@@ -55,21 +54,10 @@ namespace VidsNet.Controllers
                     await _db.SaveChangesAsync();
                 }
                 else {
-                    var virtualFolder = new RealItem() {
-                        Name = frontEndItem.Name.Trim(),
-                        ParentId = frontEndItem.Parent,
-                        Path = "/",
-                        Type = Item.VirtualFolder,
-                        UserPathId = 0,
-                        Extension = ""
-                    };
-
-                    _db.RealItems.Add(virtualFolder);
-
                     var item = new VirtualItem()
                     {
                         UserId = _user.Id,
-                        RealItemId = virtualFolder.Id,
+                        RealItemId = null,
                         ParentId = frontEndItem.Parent,
                         Name = frontEndItem.Name.Trim(),
                         IsViewed = false,
@@ -141,7 +129,7 @@ namespace VidsNet.Controllers
                 }
             }
 
-            await _user.AddSystemMessage(string.Format("Item {0} unflagging as deleted failed, id not found.", id), Severity.Error);
+            await _user.AddSystemMessage(string.Format("Item {0} unflagged as deleted failed, id not found.", id), Severity.Error);
             return NotFound();
         }
 

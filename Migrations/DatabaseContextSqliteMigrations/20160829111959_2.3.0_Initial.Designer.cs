@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using VidsNet.DataModels;
 
-namespace vidsnet.Migrations
+namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
 {
-    [DbContext(typeof(DatabaseContext))]
-    [Migration("20160826095611_SystemMessage_LongMessage")]
-    partial class SystemMessage_LongMessage
+    [DbContext(typeof(DatabaseContextSqlite))]
+    [Migration("20160829111959_2.3.0_Initial")]
+    partial class _230_Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,7 +34,7 @@ namespace vidsnet.Migrations
 
                     b.Property<int>("ParentId");
 
-                    b.Property<int>("RealItemId");
+                    b.Property<int?>("RealItemId");
 
                     b.Property<int>("Type");
 
@@ -147,24 +147,14 @@ namespace vidsnet.Migrations
                     b.ToTable("UserSettings");
                 });
 
-            modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
+            modelBuilder.Entity("VidsNet.Models.VirtualItemSqlite", b =>
                 {
                     b.HasBaseType("VidsNet.DataModels.BaseVirtualItem");
 
 
-                    b.HasIndex("RealItemId");
+                    b.ToTable("VirtualItemSqlite");
 
-                    b.ToTable("VirtualItem");
-
-                    b.HasDiscriminator().HasValue("VirtualItem");
-                });
-
-            modelBuilder.Entity("VidsNet.Models.VirtualItem", b =>
-                {
-                    b.HasOne("VidsNet.Models.RealItem", "RealItem")
-                        .WithMany()
-                        .HasForeignKey("RealItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                    b.HasDiscriminator().HasValue("VirtualItemSqlite");
                 });
         }
     }

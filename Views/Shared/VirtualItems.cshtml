@@ -24,7 +24,6 @@
         
         int padding = level * 10;
         List<BaseVirtualItem> it = items.Where(x => x.ParentId == parent && !x.IsViewed && !x.IsDeleted).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
-        //foreach(var item in it) {
         for(int i = 0; i < it.Count; i++){
             var item = it[i];
             var isLast = false;
@@ -51,12 +50,6 @@
                 ret.InnerHtml.AppendHtml(HtmlHelpers.GenerateViewItem(item, padding, Url.RouteUrl(urlContext), isLast));
             }
         }
-
-        /*if(parent != 0) {
-            var wrapper = HtmlHelpers.GenerateItem("div", new List<string>() {"collapse"}, new Dictionary<string, string>() {
-            { "id", string.Format("{0}_content", parent.ToString()) } }, ret);
-            return HtmlHelpers.TagToString(wrapper);
-    }*/
 
         return HtmlHelpers.TagToString(ret);
     }
@@ -86,6 +79,14 @@
         </div>
         <div class="clearfix"></div>
     </div>
+    @if(@Model.VirtualItems.Count > 0) {
+        @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
 
-    @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems, 0, 1))
+    }
+    else {
+        <div class="panel-body">
+            <div class="alert alert-info">No items.</div>
+        </div>
+    }
+    
 </div>

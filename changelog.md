@@ -1,5 +1,22 @@
 #VidsNET
 
+##2.3.0
+###Back-End
+- [x] Add longMessage when scanning items
+- [x] Set RealItemId column nullable in VirtualItems table
+- [x] Add Filter to check wether user's Session hash matches the one in the database
+- [x] Fix BaseScanner bug where sometimes ScanItem entries would be null
+
+###Front-End
+- [x] Add no items notification for virtualitems, vieweditems, deleteditems templates
+- [x] Fix mistype in system messages link
+- [x] Add icon in system messages showing which messages are new
+- [x] Add Badge for system messages which shows how many messages are unread
+- [x] Move system messages javacript to separate javacript file
+- [x] Add Updating system messages link badge when rescaning directories 
+- [x] Add loading animation when scanning for new items
+- [x] Remove unread icon from system message when longer version of the message is opened
+
 ##2.2.0
 ###Back-End
 - [x] Change login cookie expiry time to 2 weeks

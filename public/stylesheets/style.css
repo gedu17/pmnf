@@ -81,3 +81,44 @@ body {
   background-repeat:repeat-x;
   border-color:#dca7a7;
 }
+
+.messageBadge {
+  margin-left: 5px;
+  top: -4px !important;
+  margin-right: -10px !important;
+}
+
+.messageIcon {
+  margin-left: -10px !important;
+}
+
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+.loadingCenter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+#contentBox {
+  height: 100%;
+  min-height: 100%;
+}
+
+.systemMessagesPadding {
+  padding-top: 11px;
+}

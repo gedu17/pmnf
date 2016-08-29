@@ -57,7 +57,7 @@ namespace VidsNet.Classes
             return _db.Users.ToList();
         }
 
-        public override ClaimsPrincipal Get(string userName)
+        public override ClaimsPrincipal GetClaims(string userName)
         {
             var user = _users.FirstOrDefault(x => x.Name == userName);
 

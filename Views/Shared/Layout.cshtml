@@ -1,5 +1,6 @@
 @using VidsNet.DataModels;
 @using VidsNet.Enums;
+@using Microsoft.AspNetCore.Html;
 @model VidsNet.ViewModels.BaseViewModel
 <!html5>
 <html>
@@ -15,6 +16,7 @@
     <script src="/public/javascripts/jquery-2.2.4.min.js"></script>
     <script src="/public/javascripts/bootstrap.min.js"></script>
     <script src="/public/javascripts/helpers.js"></script>
+    <script src="/public/javascripts/systemmessages.js"></script>
     <script src="/public/javascripts/items.js"></script>
     <script src="/public/javascripts/settings.js"></script>
     <script src="/public/javascripts/scripts.js"></script>
@@ -60,33 +62,42 @@
                     <ul class="nav navbar-nav">
                         @foreach(MenuItem item in @Model.MenuItems) {
                             var hide = string.Empty;
+                            var active = string.Empty;
+                            var title = new HtmlString(item.Name);
+                            var onClick = string.Empty;
+                            var link = item.Url;
+
+                            ViewBag.Count = item.Badge;
+
                             if(item.ItemType == LinkType.Desktop) {
                                 hide = "hidden-xs hidden-sm hidden-md";
                             }
                             else if(item.ItemType == LinkType.Mobile) {
                                 hide = "hidden-lg hidden-xl";
                             }
-                            if(@item.Name == @Model.ActiveMenuItem) {
-                                <li class="active">
-                                    @if(!string.IsNullOrWhiteSpace(@item.Html)) {
-                                        <a href="#" class="btn btn-link @hide" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>   
-                                    }
-                                    else {
-                                        <a href="#" class="btn btn-link @hide" onclick="@item.OnClick">@item.Name</a>
-                                    }
-                                    
-                                </li>
+
+                            if(!string.IsNullOrWhiteSpace(item.Html)) {
+                                title = (HtmlString)Html.Raw(item.Html);
                             }
-                            else {
-                                <li>
-                                    @if(!string.IsNullOrWhiteSpace(@item.Html)) {
-                                        <a href="@item.Url" class="btn btn-link @hide" onclick="@item.OnClick">@Html.Raw(@item.Html)</a>
-                                    }
-                                    else {
-                                        <a href="@item.Url" class="btn btn-link @hide" onclick="@item.OnClick">@item.Name</a>
-                                    } 
-                                </li>
-                            }                                
+
+                            if(@item.Name == @Model.ActiveMenuItem) {
+                                active = "active";
+                            }
+
+                            if(!string.IsNullOrWhiteSpace(item.OnClick)) {
+                                onClick = string.Format("onclick=\"{0}\"", item.OnClick);
+                                link = "#";
+                            }
+
+                            
+
+                            <li class="@active">
+                                <a href="@link" id="@item.Id" class="btn btn-link @hide" @onClick>@title
+                                    @Html.Partial("Badge")
+                                </a>  
+                                    
+                                    
+                            </li>                  
                         }
                     </ul>
                 }

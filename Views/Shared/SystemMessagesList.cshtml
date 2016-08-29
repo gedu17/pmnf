@@ -3,14 +3,38 @@
 @using VidsNet.Enums;
 @{
     int i = 1;
+    string option1 = string.Empty;
+    string option2 = string.Empty;
+    if(@Model.ListingType == 0) {
+        option1 = "selected=\"selected\"";
+    }
+    else if(@Model.ListingType == 1) {
+        option2 = "selected=\"selected\"";
+    }
 }   
 
 <div class="panel panel-default">
-    <div class="panel-heading">System messages 
-        <button type="button" class="btn btn-link" onclick="cleanMessages();">
-            <i class="glyphicon glyphicon-trash iconXsmall"></i>
-        </button>
+    <div class="panel-heading">
+        <div class="pull-left systemMessagesPadding">
+            System messages 
+        </div>
+        <div class="pull-left listingPadding">
+            <span class="pull-xs-left">
+                <select id="listingType" name="listingType" class="form-control " onchange="changeSystemMessages();">
+                    <option value="0" @option1>Important</option>
+                    <option value="1" @option2>All</option>
+                </select>
+            </span>
+        </div>
+        <div class="pull-left controlsPadding">
+            <button type="button" class="btn btn-link" onclick="cleanMessages();">
+                <i class="glyphicon glyphicon-trash iconXsmall"></i>
+            </button>
+        </div>
+        <div class="clearfix"></div>
     </div>
+
+
     @if(@Model.Messages.Count > 0) {
         <table class="table table-bordered table-condensed" id="systemMessagesTable">
             <thead>
@@ -22,15 +46,20 @@
             <tbody>
                 @foreach(SystemMessage message in @Model.Messages) {
                     var alert = @HtmlHelpers.GetSeverity(message.Severity);
+                    var onClick = "";
+                    var newMessage = "";
+
+                    if(!string.IsNullOrWhiteSpace(message.LongMessage)) {
+                        onClick = string.Format("onclick=\"openMessage({0});\"", @message.Id);
+                    }
+                    if(message.Read == 0) {
+                        newMessage = string.Format("<i class=\"glyphicon glyphicon-exclamation-sign\" id=\"{0}_icon\"></i>", @message.Id); 
+                    }
+
                     <tr class="@alert" id="@string.Format("{0}_tr", @message.Id)">
                         <td class="text-center verticalMiddle"><strong>@(i++)</strong></td>
                         <td class="text-left col-md-8 verticalMiddle">
-                            @if(!string.IsNullOrWhiteSpace(message.LongMessage)) {
-                                <a href="#" class="btn btn-link" onclick="openMessage(@message.Id);">@message.Message</a>
-                            }
-                            else {
-                                <a href="#" class="btn btn-link">@message.Message</a>
-                            }
+                                <a href="#" class="btn btn-link" @Html.Raw(@onClick)>@Html.Raw(@newMessage) @message.Message</a>
                             
                         </td>
                         <td class="text-center verticalMiddle">@message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>

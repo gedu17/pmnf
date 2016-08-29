@@ -296,6 +296,60 @@ namespace VidsNet.Classes
             return alert;
         }
 
+        public static string GenerateScanResult(ScanResult result) {
+            var div = GenerateItem("div", new List<string>(), new Dictionary<string, string>());
+
+            var newItems = GenerateItem("h4", new List<string>(), new Dictionary<string, string>(), null, "New items");
+            div.InnerHtml.AppendHtml(newItems);
+            var parentDiv = GenerateItem("ul", new List<string>() { "list-group" }, new Dictionary<string, string>());
+            div.InnerHtml.AppendHtml(parentDiv);
+            foreach(var item in result.NewItems) {
+                IterateItem(item, parentDiv, 1);
+            }
+            var deletedItems = GenerateItem("h4", new List<string>(), new Dictionary<string, string>(), null, "Deleted items");
+            div.InnerHtml.AppendHtml(deletedItems);
+
+            var parent2Div = GenerateItem("ul", new List<string>() { "list-group" }, new Dictionary<string, string>());
+            div.InnerHtml.AppendHtml(parent2Div);
+            foreach(var item in result.DeletedItems) {
+                IterateItem(item, parent2Div, 1);
+            }
+            
+            return TagToString(div);
+        }
+
+        private static void IterateItem(ScanItem item, TagBuilder tag, int level) {
+            var parentPath = Path.GetFileName(item.Path);
+            
+            var parentDiv = GenerateItem("li", new List<string>() { "list-group-item" }, new Dictionary<string, string>(){ 
+                    { "style", string.Format("padding-left: {0}px;", GetPadding(level)) } }, null, parentPath);
+
+            if(item.Type == Item.Folder) {
+                var badge = GenerateItem("span", new List<string>(){ "badge" }, new Dictionary<string, string>(), null,
+                 item.Children.Count.ToString());
+                 parentDiv.InnerHtml.AppendHtml(badge);
+            }
+
+            tag.InnerHtml.AppendHtml(parentDiv);
+
+            foreach(var child in item.Children) {
+                var childPath = Path.GetFileName(child.Path);
+                var childDiv = GenerateItem("li", new List<string>() {"list-group-item"}, new Dictionary<string, string>(){ 
+                { "style", string.Format("padding-left: {0}px;", GetPadding(level + 1)) } }, null, childPath);
+
+                if(child.Type == Item.Folder) {
+                    //IterateItem(child, tag, level + 1);
+                    IterateItem(child, parentDiv, level + 1);
+                }
+                else {
+                    tag.InnerHtml.AppendHtml(childDiv);
+                }
+            }
+        }
+
+        private static int GetPadding(int level) {
+            return 10 * level;
+        }
     }
     
 }

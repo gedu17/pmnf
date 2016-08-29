@@ -10,6 +10,7 @@ using VidsNet.Scanners;
 using VidsNet.DataModels;
 using VidsNet.Enums;
 using VidsNet.Classes;
+using VidsNet.Filters;
 
 namespace VidsNet
 {
@@ -44,16 +45,19 @@ namespace VidsNet
             });
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");          
-            services.AddMvc();
+            services.AddMvc( options => {
+                options.Filters.Add(typeof(UserLoggedInFilter));
+            });
 
             services.AddScoped<BaseUserRepository, UserRepository>();
+            services.AddSingleton<UserData, UserData>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddTransient<BaseScanner, BaseScanner>();
             services.AddTransient<Scanner, Scanner>();
             services.AddTransient<Video, Video>();
             services.AddTransient<Subtitle, Subtitle>();
-            services.AddTransient<UserData, UserData>();
+            //services.AddTransient<UserData, UserData>();
             services.AddTransient<VideoViewer, VideoViewer>();
         }
 
@@ -86,6 +90,9 @@ namespace VidsNet
                 template: "item/view/{session}/{id}/{name}");
                 //template: "{controller}/{action}/{id}/{name}",
                 //defaults: new { controller = "Item", action = "View" });
+
+                routes.MapRoute(name: "Login",
+                template: "Account/Login/");
                 
             });
 

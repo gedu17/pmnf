@@ -30,12 +30,17 @@ namespace VidsNet.Controllers
         public async Task<IActionResult> Scan() {
             if(ModelState.IsValid) {
                 var data = await _scanner.Scan(_user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList());
+                var newItemsHtml = string.Empty;
+                if(data.NewItemsCount > 0 || data.DeletedItemsCount > 0) {
+                    newItemsHtml = HtmlHelpers.GenerateScanResult(data);
+                }
+
                 if(data.NewItemsCount > 0) {
-                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info); 
+                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info, newItemsHtml); 
                 }
                 
                 if(data.DeletedItemsCount > 0) {
-                    await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info);
+                    await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info, newItemsHtml);
                 }            
                 return Ok();
             }

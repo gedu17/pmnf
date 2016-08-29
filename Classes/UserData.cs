@@ -11,7 +11,7 @@ using VidsNet.DataModels;
 
 namespace VidsNet.Classes
 {
-    public class UserData {
+    public class UserData : IDisposable {
         public int Id {get; private set;}
         public string Name {get; private set;}
         public int Level {get; private set;}
@@ -83,31 +83,34 @@ namespace VidsNet.Classes
 
             await _db.SaveChangesAsync();
             UserSettings = _db.UserSettings.Where(x => x.UserId == Id).ToList();
-
         }
 
-        public async Task AddSystemMessage(string message, Severity severity) {
+        public async Task AddSystemMessage(string message, Severity severity, string longMessage="") {
             var msg = new SystemMessage() {
                 Message = message,
                 Read = 0,
                 Severity = severity,
                 UserId = Id,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now,
+                LongMessage = longMessage
             };
 
             _db.SystemMessages.Add(msg);
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> SetSystemMessageAsRead(int id) {
-            var msg = _db.SystemMessages.Where(x => x.Id == id && x.UserId == Id).FirstOrDefault();
-            if(msg is SystemMessage) {
-                msg.Read = 1;
-                _db.SystemMessages.Update(msg);
-                await _db.SaveChangesAsync();
-                return true;
+        public async Task SetSystemMessagesAsRead() {
+            var messages = _db.SystemMessages.Where(x => x.UserId == Id).ToList();
+            foreach(var message in messages){
+                message.Read = 1;
             }
-            return false;
+            _db.SystemMessages.UpdateRange(messages);
+            await _db.SaveChangesAsync();
+        }
+
+        public int GetSystemMessageCount() {
+            var messages = _db.SystemMessages.Where(x => x.UserId == Id && x.Read == 0 && x.Severity >= Severity.Info).ToList();
+            return messages.Count;
         }
 
         public async Task<bool> DeleteSystemMessage(int id) {
@@ -151,5 +154,54 @@ namespace VidsNet.Classes
 
             UserSettings = _db.UserSettings.Where(x => x.UserId == Id).ToList();
         }
+
+        /*public void ClearUserData() {
+            Id = 0;
+            Name = string.Empty;
+            Level = 0;
+            IsAdmin = false;
+            SessionHash = Guid.Empty.ToString();
+
+        }*/
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Id = 0;
+                    Name = string.Empty;
+                    Level = 0;
+                    IsAdmin = false;
+                    SessionHash = Guid.Empty.ToString();
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~UserData() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

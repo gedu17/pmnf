@@ -1,0 +1,9 @@
+@{
+    int count = 0;
+    if(ViewBag.Count != null) {
+        count = (int)ViewBag.Count;
+    }     
+}
+@if(@count > 0) {
+    <span class="badge messageBadge" id="systemMessagesBadge">@count</span>
+}

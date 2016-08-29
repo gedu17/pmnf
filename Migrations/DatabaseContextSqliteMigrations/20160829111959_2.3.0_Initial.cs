@@ -2,12 +2,34 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace vidsnet.Migrations
+namespace vidsnet.Migrations.DatabaseContextSqliteMigrations
 {
-    public partial class InitialMigration : Migration
+    public partial class _230_Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "VirtualItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Autoincrement", true),
+                    DeletedTime = table.Column<DateTime>(nullable: false),
+                    Discriminator = table.Column<string>(nullable: false),
+                    IsDeleted = table.Column<bool>(nullable: false),
+                    IsViewed = table.Column<bool>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    ParentId = table.Column<int>(nullable: false),
+                    RealItemId = table.Column<int>(nullable: true),
+                    Type = table.Column<int>(nullable: false),
+                    UserId = table.Column<int>(nullable: false),
+                    ViewedTime = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VirtualItems", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "RealItems",
                 columns: table => new
@@ -32,6 +54,7 @@ namespace vidsnet.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Autoincrement", true),
+                    Description = table.Column<string>(nullable: true),
                     Name = table.Column<string>(nullable: true),
                     Value = table.Column<string>(nullable: true)
                 },
@@ -46,9 +69,11 @@ namespace vidsnet.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Autoincrement", true),
+                    LongMessage = table.Column<string>(nullable: true),
                     Message = table.Column<string>(nullable: true),
                     Read = table.Column<int>(nullable: false),
                     Severity = table.Column<int>(nullable: false),
+                    Timestamp = table.Column<DateTime>(nullable: false),
                     UserId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -65,7 +90,8 @@ namespace vidsnet.Migrations
                     Active = table.Column<int>(nullable: false),
                     Level = table.Column<int>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    Password = table.Column<string>(nullable: true)
+                    Password = table.Column<string>(nullable: true),
+                    SessionHash = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -78,6 +104,7 @@ namespace vidsnet.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Autoincrement", true),
+                    Description = table.Column<string>(nullable: true),
                     Name = table.Column<string>(nullable: true),
                     UserId = table.Column<int>(nullable: false),
                     Value = table.Column<string>(nullable: true)
@@ -86,31 +113,13 @@ namespace vidsnet.Migrations
                 {
                     table.PrimaryKey("PK_UserSettings", x => x.Id);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "VirtualItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Autoincrement", true),
-                    DeletedTime = table.Column<DateTime>(nullable: false),
-                    IsDeleted = table.Column<bool>(nullable: false),
-                    IsSeen = table.Column<bool>(nullable: false),
-                    Name = table.Column<string>(nullable: true),
-                    ParentId = table.Column<int>(nullable: false),
-                    RealItemId = table.Column<int>(nullable: false),
-                    SeenTime = table.Column<DateTime>(nullable: false),
-                    Type = table.Column<int>(nullable: false),
-                    UserId = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VirtualItems", x => x.Id);
-                });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "VirtualItems");
+
             migrationBuilder.DropTable(
                 name: "RealItems");
 
@@ -125,9 +134,6 @@ namespace vidsnet.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserSettings");
-
-            migrationBuilder.DropTable(
-                name: "VirtualItems");
         }
     }
 }

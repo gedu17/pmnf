@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using VidsNet.Scanners;
 using VidsNet.ViewModels;
 using VidsNet.DataModels;
 using VidsNet.Classes;
 using VidsNet.Filters;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace VidsNet.Controllers
 {
@@ -16,26 +17,27 @@ namespace VidsNet.Controllers
     public class HomeController : BaseController
     {
         private ILogger _logger;
-        private Scanner _scanner;
         private BaseDatabaseContext _db;
-        public HomeController(ILoggerFactory logger, Scanner scanner, UserData userData, BaseDatabaseContext db)
+        public HomeController(ILoggerFactory logger, UserData userData, BaseDatabaseContext db)
          : base(userData) {
             _logger = logger.CreateLogger("HomeController");
-            _scanner = scanner;
             _db = db;
         }
 
         
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if(Constants.IsSqlite) {
-                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
-                var realItems = _db.RealItems.ToList();
+                var virtualItems = await _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToListAsync();
+                var realItems = await _db.RealItems.ToListAsync();
                 var model = new HomeViewModel(_user) {VirtualItems = virtualItems, RealItems = realItems };
                 return View(model);
             }
             else {
-                var virtualItems =  _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToList();
+                var virtualItems = await _db.VirtualItems.Where(x => x.UserId == _user.Id).OrderBy(x => x.Type).ThenBy(y => y.Name).ToListAsync();
+                //Workaround to force EF load RealItem objects into VirtualItems
+                var realItems = await _db.RealItems.ToListAsync();
+
                 var model = new HomeViewModel(_user) {VirtualItems = virtualItems};
                 return View(model);
             }
@@ -52,7 +54,7 @@ namespace VidsNet.Controllers
 
         [Route("error")]
         public IActionResult Error() {
-            return Ok("Error occured!");
+            return Error();
         }
     }
 }

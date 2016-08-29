@@ -26,15 +26,17 @@ namespace VidsNet.ViewModels
         public MenuItems MenuItems {get;}
 
         public BaseViewModel(UserData userData) {
-            MenuItems = new MenuItems();
+            
             if(userData != null) {
                 CurrentUrl = userData.CurrentUrl;
                 UserId = userData.Id;
                 SessionHash = userData.SessionHash;
+                MenuItems = new MenuItems(userData.GetSystemMessageCount());
             }
             else {
                 CurrentUrl = "/";
                 UserId = 0;
+                MenuItems = new MenuItems(0);
             }
         }
     }

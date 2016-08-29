@@ -55,6 +55,13 @@
         </div>
         <div class="clearfix"></div>
     </div>
+    @if(@Model.VirtualItems.Count > 0) {
+        @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems))
 
-    @Html.Raw(@PrintListing(@Model.VirtualItems, @Model.RealItems))
+    }
+    else {
+        <div class="panel-body">
+            <div class="alert alert-info">No items.</div>
+        </div>
+    }
 </div>

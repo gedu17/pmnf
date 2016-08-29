@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -22,7 +21,7 @@ namespace VidsNet.Filters
 
         public override async void OnException(ExceptionContext context)
         {
-            await _userData.AddSystemMessage(context.Exception.Message, Severity.Error);
+            await _userData.AddSystemMessage(context.Exception.Message, Severity.Error, context.Exception.StackTrace);
         }
     }
 }

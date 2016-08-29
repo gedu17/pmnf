@@ -1,7 +1,6 @@
 
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using VidsNet.Enums;
 using VidsNet.DataModels;
 
 namespace VidsNet.Models
@@ -11,7 +10,7 @@ namespace VidsNet.Models
         public override int UserId {get;set;}
 
         [ForeignKey("RealItem")]
-        public override int RealItemId {get;set;}
+        public override int? RealItemId {get;set;}
         public override int ParentId {get;set;}
         public override string Name {get;set;}
         public override bool IsViewed {get;set;}

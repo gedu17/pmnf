@@ -65,18 +65,19 @@ namespace VidsNet.Scanners
             return _scanResult; 
         }
 
-        private void ItemDifferenceFinder(List<ScanItem> oldItems, List<ScanItem> newItems, Action<ScanItem> addFunction) {
+        private void ItemDifferenceFinder(List<ScanItem> oldItems, List<ScanItem> newItems, Action<ScanItem> action) {
             for(int i = 0; i < newItems.Count; i++) {
                 if(oldItems.Count < (i+1)){
-                    _scanResult.NewItems.Add(newItems[i]);
+                    //_scanResult.NewItems.Add(newItems[i]);
+                    action(newItems[i]);
                 }
                 else {
                     for(int j = 0; j < newItems[i].Children.Count; j++) {
                         if(!oldItems[i].Children.Any(x => x.Path == newItems[i].Children[j].Path)) {
-                            addFunction(newItems[i].Children[j]);
+                            action(newItems[i].Children[j]);
                         }
                         else if(newItems[i].Children[j].Type == Item.Folder) {
-                            ItemDifferenceFinder(oldItems[i].Children[j].Children, newItems[i].Children[j].Children, addFunction);
+                            ItemDifferenceFinder(oldItems[i].Children[j].Children, newItems[i].Children[j].Children, action);
                         }                        
                     }
                 }

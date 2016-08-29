@@ -69,13 +69,15 @@ namespace VidsNet.Controllers
                     return View(new LoginViewModel(_user) { ErrorMessage = "Bad login info."});
                 }
 
-                var claimsPrincipal = _userRepository.Get(model.Username);
+                var claimsPrincipal = _userRepository.GetClaims(model.Username);
                 await HttpContext.Authentication.SignInAsync("Cookie", claimsPrincipal,
                 new AuthenticationProperties{
                     ExpiresUtc = DateTime.Now.AddMinutes(Constants.CookieExpiryTime),
                     IsPersistent = true,
                     AllowRefresh = true
                 });
+
+                _user.ParseClaims(claimsPrincipal.Claims);
 
                 if(string.IsNullOrWhiteSpace(model.ReturnUrl)) {
                     return Redirect("/");
@@ -200,13 +202,17 @@ namespace VidsNet.Controllers
                 await _user.UpdateUserPaths(paths);
                 var userPaths = _user.UserSettings.Where(x => x.Name == "path").OrderBy(x => x.Value).ToList();
                 var data = await _scanner.Scan(userPaths);
+                var newItemsHtml = string.Empty;
+                if(data.NewItemsCount > 0 || data.DeletedItemsCount > 0) {
+                    newItemsHtml = HtmlHelpers.GenerateScanResult(data);
+                }
 
                 if(data.NewItemsCount > 0) {
-                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info); 
+                    await _user.AddSystemMessage(string.Format("{0} items added.", data.NewItemsCount), Severity.Info, newItemsHtml); 
                 }
                 
                 if(data.DeletedItemsCount > 0) {
-                    await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info);
+                    await _user.AddSystemMessage(string.Format("{0} items removed.", data.DeletedItemsCount), Severity.Info, newItemsHtml);
                 }
                 
                 return Ok();

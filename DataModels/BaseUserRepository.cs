@@ -10,7 +10,7 @@ namespace VidsNet.DataModels
     public abstract class BaseUserRepository
     {
         public abstract bool ValidateLogin(string username, string password);
-        public abstract ClaimsPrincipal Get(string userName);
+        public abstract ClaimsPrincipal GetClaims(string userName);
         public abstract Task<bool> ChangePassword(int userId, string password);
         public abstract List<User> GetUsers();
         public abstract Task<bool> SetActive(int userId, int value);
