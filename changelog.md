@@ -1,4 +1,4 @@
-#VidsNET
+#Poor Mans Netflix
 
 ##2.4.0
 ###Back-End
